@@ -1,40 +1,37 @@
 package com.demo.demo.entity;
 
-
 import jakarta.persistence.*;
-import lombok.*;
-
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "Users")
+@Table(name = "users")
 public class User {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    private long userId;
+    private Long userId;
 
-    @Column(name = "Name", nullable = false)
+    @Column(name = "name", nullable = false)
     private String name;
 
-
-    @Column(name = "Email", nullable = false, unique = true)
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
 
+    // Matches your database column
+    @Column(name = "mobile_no", nullable = false, unique = true)
+    private String mobile;
 
-    @Column(name= "Mobile_No", unique = true,nullable = false)
-    private String Mobile;
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
 
-
-    @Column(name = "Password_Hash", nullable = false)
-    private String password_hash;
-
-    @Column(name= " Role",nullable = false)
+    @Column(name = "role", nullable = false)
     private String role;
-
-
 }
