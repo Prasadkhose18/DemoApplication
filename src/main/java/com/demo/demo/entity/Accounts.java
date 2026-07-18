@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Getter
 @Setter
-public class Account {
+public class Accounts {
 
     @Id
     @GeneratedValue
@@ -30,6 +30,9 @@ public class Account {
 
     @Column(name = "Balance", nullable = false)
     private BigDecimal balance;
+
+    @Column(name = "Status", nullable = false)
+    private String status;
 
 
     @ManyToOne(fetch = FetchType.LAZY)
