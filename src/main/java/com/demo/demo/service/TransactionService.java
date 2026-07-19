@@ -3,6 +3,9 @@ package com.demo.demo.service;
 
 import com.demo.demo.entity.Accounts;
 import com.demo.demo.entity.Transactions;
+import com.demo.demo.exception.InsufficientBalanceException;
+import com.demo.demo.exception.InvalidTransactionException;
+import com.demo.demo.exception.ResourceNotFoundException;
 import com.demo.demo.repository.AccountRepository;
 import com.demo.demo.repository.TransactionReposiory;
 import jakarta.transaction.Transactional;
@@ -26,7 +29,7 @@ public class TransactionService {
     public Transactions deposit(String accountNumber, BigDecimal amount){
 
         if(amount.compareTo(BigDecimal.ZERO)<=0)
-            throw new RuntimeException("Amount must be greater than zero");
+            throw new InvalidTransactionException("Amount must be greater than zero");
 
         Accounts account = validateOwnership(accountNumber);
 
@@ -50,13 +53,13 @@ public class TransactionService {
 
 public Transactions withdraw(String accountNumber, BigDecimal amount){
     if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-        throw new RuntimeException("Withdraw amount must be positive");
+        throw new InvalidTransactionException("Withdraw amount must be positive");
     }
 
     Accounts account = validateOwnership(accountNumber);
 
     if (account.getBalance().compareTo(amount) < 0) {
-        throw new RuntimeException("Insufficient balance");
+        throw new InsufficientBalanceException("Insufficient balance");
     }
 
     BigDecimal before = account.getBalance();
@@ -93,7 +96,7 @@ public Transactions withdraw(String accountNumber, BigDecimal amount){
     private Accounts validateOwnership(String accountNumber) {
 
         Accounts account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
 
         String currentUserEmail = "prasad@example.com";
 

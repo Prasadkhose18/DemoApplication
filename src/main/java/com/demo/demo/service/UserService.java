@@ -2,6 +2,8 @@ package com.demo.demo.service;
 
 import java.util.Optional;
 
+import com.demo.demo.exception.DuplicateEmailException;
+import com.demo.demo.exception.DuplicateMobileNumberException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,13 +31,13 @@ public class UserService {
 
         // Check if email already exists
         if (userRepository.existsByEmail(user.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new DuplicateEmailException("Email already exists");
         }
 
         // Check if mobile already exists
         if (user.getMobile() != null &&
                 userRepository.existsByMobile(user.getMobile())) {
-            throw new RuntimeException("Mobile number already exists");
+            throw new DuplicateMobileNumberException("Mobile number already exists");
         }
 
         // Validate password
