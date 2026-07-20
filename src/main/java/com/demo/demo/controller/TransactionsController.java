@@ -35,6 +35,7 @@ public class TransactionsController {
                 request.getAccountNumber(),
                 request.getAmount()
         );
+        System.out.println("Received Credentials");
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(

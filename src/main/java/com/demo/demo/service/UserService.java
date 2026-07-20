@@ -7,12 +7,16 @@ import com.demo.demo.exception.DuplicateMobileNumberException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.demo.demo.entity.User;
 import com.demo.demo.repository.UserRepository;
+import com.demo.demo.security.CustomUserDetails;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
 
     private  final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -75,5 +79,12 @@ public class UserService {
      */
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
+        return new CustomUserDetails(user);
     }
 }

@@ -39,7 +39,11 @@ public class TransactionService {
         account.setBalance(after);
         accountRepository.save(account);
 
+        System.out.println("Account Saved");
+
         Transactions txn = new Transactions();
+
+        System.out.println("Transaction created");
 
         txn.setAccount(account);
         txn.setTransactionType("DEPOSIT");
@@ -49,6 +53,8 @@ public class TransactionService {
         txn.setTransactionTime(LocalDateTime.now());
         txn.setReferenceId(generateReferenceId());
         return transactionReposiory.save(txn);
+
+
     }
 
 public Transactions withdraw(String accountNumber, BigDecimal amount){

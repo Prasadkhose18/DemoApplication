@@ -4,6 +4,7 @@ import com.demo.demo.entity.Accounts;
 import com.demo.demo.entity.User;
 import com.demo.demo.repository.AccountRepository;
 import com.demo.demo.repository.UserRepository;
+import com.demo.demo.security.SecurityUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +27,7 @@ public class AccountsService {
 
     @Transactional
     public Accounts createAccount(String accountType){
-        String email = "prasad@example.com";
+        String email = SecurityUtil.getCurrentUserEmail();
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(()->new RuntimeException("User Not found"));
@@ -42,7 +43,7 @@ public class AccountsService {
     }
 
     public List<Accounts> getMyAccounts(){
-        String email = "prasad@example.com";
+        String email = SecurityUtil.getCurrentUserEmail();
         return accountRepository.findByUserEmail(email);
     }
 

@@ -24,6 +24,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id){
+
         User user = userService.getUserById(id);
 
         UserResponseDTO responseDTO = new UserResponseDTO();
@@ -35,6 +36,8 @@ public class UserController {
         responseDTO.setRole(user.getRole());
 
         return ResponseEntity.ok(responseDTO);
+
+
 
     }
 
