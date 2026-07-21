@@ -4,6 +4,7 @@ import com.demo.demo.dto.ApiResponse;
 import com.demo.demo.dto.TransactionRequestDTO;
 import com.demo.demo.dto.TransactionResponseDTO;
 import com.demo.demo.entity.Transactions;
+import com.demo.demo.mapper.TransactionMapper;
 import com.demo.demo.service.TransactionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -19,31 +20,27 @@ import org.springframework.web.bind.annotation.RestController;
 public class TransactionsController {
 
     private final TransactionService transactionService;
+    private final TransactionMapper transactionMapper;
 
-    public TransactionsController(TransactionService transactionService) {
+    public TransactionsController(TransactionService transactionService,
+                                  TransactionMapper transactionMapper) {
         this.transactionService = transactionService;
+        this.transactionMapper = transactionMapper;
     }
 
-    // ===================== DEPOSIT =====================
     @PostMapping("/deposit")
     public ResponseEntity<ApiResponse<TransactionResponseDTO>> deposit(
             @Valid @RequestBody TransactionRequestDTO request,
             HttpServletRequest httpRequest) {
 
-
         Transactions txn = transactionService.deposit(
                 request.getAccountNumber(),
-                request.getAmount()
-        );
-        System.out.println("Received Credentials");
+                request.getAmount());
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(
-                        HttpStatus.CREATED,
-                        "Deposit successful",
-                        mapToResponse(txn),
-                        httpRequest.getRequestURI()
-                ));
+        return buildResponse(
+                txn,
+                "Deposit successful",
+                httpRequest.getRequestURI());
     }
 
     @PostMapping("/withdraw")
@@ -53,29 +50,26 @@ public class TransactionsController {
 
         Transactions txn = transactionService.withdraw(
                 request.getAccountNumber(),
-                request.getAmount()
-        );
+                request.getAmount());
+
+        return buildResponse(
+                txn,
+                "Withdrawal successful",
+                httpRequest.getRequestURI());
+    }
+
+
+    private ResponseEntity<ApiResponse<TransactionResponseDTO>> buildResponse(
+            Transactions transaction,
+            String message,
+            String path) {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(
                         HttpStatus.CREATED,
-                        "Withdrawal successful",
-                        mapToResponse(txn),
-                        httpRequest.getRequestURI()
+                        message,
+                        transactionMapper.toResponseDTO(transaction),
+                        path
                 ));
-    }
-
-
-
-    private TransactionResponseDTO mapToResponse(Transactions txn) {
-        TransactionResponseDTO res = new TransactionResponseDTO();
-        res.setAccountNumber(txn.getAccount().getAccountNumber());
-        res.setReferenceId(txn.getReferenceId());
-        res.setTransactionType(txn.getTransactionType());
-        res.setAmount(txn.getAmount());
-        res.setBalanceBefore(txn.getBalanceBefore());
-        res.setBalanceAfter(txn.getBalanceAfter());
-        res.setTransactionTime(txn.getTransactionTime());
-        return res;
     }
 }

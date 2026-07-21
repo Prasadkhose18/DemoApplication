@@ -3,6 +3,7 @@ package com.demo.demo.controller;
 import com.demo.demo.dto.AccountRequestDTO;
 import com.demo.demo.dto.AccountResponseDTO;
 import com.demo.demo.entity.Accounts;
+import com.demo.demo.mapper.AccountMapper;
 import com.demo.demo.service.AccountsService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -17,8 +18,10 @@ import java.util.stream.Collectors;
 public class AccountController {
 
     private final AccountsService accountsService;
-    public AccountController(AccountsService accountsService){
+    private final AccountMapper accountMapper;
+    public AccountController(AccountsService accountsService, AccountMapper accountMapper){
         this.accountsService= accountsService;
+        this.accountMapper = accountMapper;
     }
 
     // -- Create--
@@ -32,30 +35,16 @@ public class AccountController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(mapToResponse(account));
+                .body(accountMapper.responseDTO(account));
     }
-
 
     @GetMapping("/me")
     public ResponseEntity<List<AccountResponseDTO>> getMyAccounts(){
         List<AccountResponseDTO> response =
                 accountsService.getMyAccounts()
                         .stream()
-                        .map(this::mapToResponse)
+                        .map(accountMapper::responseDTO)
                         .collect(Collectors.toList());
         return ResponseEntity.ok(response);
     }
-
-    private AccountResponseDTO mapToResponse(Accounts account) {
-
-        AccountResponseDTO dto = new AccountResponseDTO();
-        dto.setAccountId(account.getAccountId());
-        dto.setAccountNumber(account.getAccountNumber());
-        dto.setAccountType(account.getAccountType());
-        dto.setBalance(account.getBalance());
-        dto.setStatus(account.getStatus());
-        return dto;
-    }
-
-
 }

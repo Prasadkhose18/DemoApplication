@@ -8,21 +8,19 @@ import com.demo.demo.exception.InvalidTransactionException;
 import com.demo.demo.exception.ResourceNotFoundException;
 import com.demo.demo.factory.TransactionFactory;
 import com.demo.demo.repository.AccountRepository;
-import com.demo.demo.repository.TransactionReposiory;
+import com.demo.demo.repository.TransactionRepository;
 import com.demo.demo.security.SecurityUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 public class TransactionService {
     private final AccountRepository accountRepository;
     private final TransactionFactory transactionFactory;
 
-    public TransactionService(AccountRepository accountRepository, TransactionReposiory transactionReposiory, TransactionFactory transactionFactory) {
+    public TransactionService(AccountRepository accountRepository, TransactionRepository transactionReposiory, TransactionFactory transactionFactory) {
         this.accountRepository = accountRepository;
         this.transactionFactory = transactionFactory;
     }
