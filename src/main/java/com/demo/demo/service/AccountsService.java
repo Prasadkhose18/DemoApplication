@@ -2,13 +2,13 @@ package com.demo.demo.service;
 
 import com.demo.demo.entity.Accounts;
 import com.demo.demo.entity.User;
+import com.demo.demo.factory.AccountFactory;
 import com.demo.demo.repository.AccountRepository;
 import com.demo.demo.repository.UserRepository;
 import com.demo.demo.security.SecurityUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,10 +17,13 @@ public class AccountsService {
 
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
+    private final AccountFactory accountFactory;
 
-    public AccountsService(AccountRepository accountRepository, UserRepository userRepository) {
+    public AccountsService(AccountRepository accountRepository, UserRepository userRepository, AccountFactory accountFActory, AccountFactory accountFActory1) {
         this.accountRepository = accountRepository;
         this.userRepository = userRepository;
+        this.accountFactory = accountFActory1;
+
     }
 
     // Create Account---
@@ -32,12 +35,7 @@ public class AccountsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(()->new RuntimeException("User Not found"));
 
-        Accounts account = new Accounts();
-        account.setAccountNumber(generateAccountNumber());
-        account.setAccountType(accountType.toUpperCase());
-        account.setBalance(BigDecimal.ZERO);
-        account.setStatus("ACTIVE");
-        account.setUser(user);
+        Accounts account = accountFactory.createAccount(user, "SAVINGS");
 
         return accountRepository.save(account);
     }
@@ -47,11 +45,4 @@ public class AccountsService {
         return accountRepository.findByUserEmail(email);
     }
 
-    private String generateAccountNumber(){
-        return "ACC-"+ UUID.randomUUID()
-                .toString()
-                .replace("-","")
-                .substring(0,10)
-                .toUpperCase();
-    }
 }

@@ -9,6 +9,7 @@ import com.demo.demo.exception.ResourceNotFoundException;
 import com.demo.demo.factory.TransactionFactory;
 import com.demo.demo.repository.AccountRepository;
 import com.demo.demo.repository.TransactionReposiory;
+import com.demo.demo.security.SecurityUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -19,12 +20,10 @@ import java.util.UUID;
 @Service
 public class TransactionService {
     private final AccountRepository accountRepository;
-    private final TransactionReposiory transactionReposiory;
     private final TransactionFactory transactionFactory;
 
     public TransactionService(AccountRepository accountRepository, TransactionReposiory transactionReposiory, TransactionFactory transactionFactory) {
         this.accountRepository = accountRepository;
-        this.transactionReposiory = transactionReposiory;
         this.transactionFactory = transactionFactory;
     }
 
@@ -67,11 +66,14 @@ public Transactions withdraw(String accountNumber, BigDecimal amount){
     BigDecimal after = before.subtract(amount);
 
     account.setBalance(after);
-
+    System.out.println("Transaction done and now saving into repo");
+    accountRepository.save(account);
+    System.out.println("Saved txn into repo -> going to factory for account");
 
     Transactions txn = transactionFactory.create(
             account,"WITHDRAW",amount,before,after
     );
+
     return txn;
 }
 
@@ -81,7 +83,7 @@ public Transactions withdraw(String accountNumber, BigDecimal amount){
         Accounts account = accountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
 
-        String currentUserEmail = "prasad@example.com";
+        String currentUserEmail = SecurityUtil.getCurrentUserEmail();
 
         if (!account.getUser().getEmail().equals(currentUserEmail)) {
             throw new RuntimeException("Unauthorized account access");

@@ -1,5 +1,6 @@
 package com.demo.demo.dto;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.cglib.core.Local;
@@ -8,8 +9,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 
-@Getter
-@Setter
+@Data
 public class TransactionResponseDTO {
 
     private String accountNumber;

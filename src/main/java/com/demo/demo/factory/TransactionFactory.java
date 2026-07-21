@@ -3,7 +3,6 @@ package com.demo.demo.factory;
 
 import com.demo.demo.entity.Accounts;
 import com.demo.demo.entity.Transactions;
-import com.demo.demo.service.TransactionService;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -18,24 +17,20 @@ public class TransactionFactory {
             String type,
             BigDecimal amount,
             BigDecimal before,
-            BigDecimal after
-    ){
+            BigDecimal after) {
+
         Transactions txn = new Transactions();
 
-        System.out.println("Transaction created");
-
         txn.setAccount(account);
-        txn.setTransactionType("DEPOSIT");
+        txn.setTransactionType(type);
         txn.setAmount(amount);
         txn.setBalanceBefore(before);
         txn.setBalanceAfter(after);
         txn.setTransactionTime(LocalDateTime.now());
         txn.setReferenceId(generateReferenceId());
 
-        txn.setTransactionTime(LocalDateTime.now());
         return txn;
     }
-
 
     private String generateReferenceId() {
         return "TXN-" + UUID.randomUUID()
