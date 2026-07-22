@@ -3,7 +3,6 @@ package com.demo.demo.mapper;
 
 import com.demo.demo.dto.AccountResponseDTO;
 import com.demo.demo.entity.Accounts;
-import com.demo.demo.repository.AccountRepository;
 import org.springframework.stereotype.Component;
 
 @Component

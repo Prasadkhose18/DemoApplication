@@ -8,7 +8,6 @@ import com.demo.demo.exception.InvalidTransactionException;
 import com.demo.demo.exception.ResourceNotFoundException;
 import com.demo.demo.factory.TransactionFactory;
 import com.demo.demo.repository.AccountRepository;
-import com.demo.demo.repository.TransactionRepository;
 import com.demo.demo.security.SecurityUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -20,7 +19,8 @@ public class TransactionService {
     private final AccountRepository accountRepository;
     private final TransactionFactory transactionFactory;
 
-    public TransactionService(AccountRepository accountRepository, TransactionRepository transactionReposiory, TransactionFactory transactionFactory) {
+    public TransactionService(AccountRepository accountRepository,
+                              TransactionFactory transactionFactory) {
         this.accountRepository = accountRepository;
         this.transactionFactory = transactionFactory;
     }
@@ -41,12 +41,10 @@ public class TransactionService {
 
         System.out.println("Account Saved");
 
-        Transactions txn = transactionFactory.create(
+
+        return transactionFactory.create(
                 account,"DEPOSIT",amount,before,after
         );
-
-
-        return txn;
     }
 
 public Transactions withdraw(String accountNumber, BigDecimal amount){
@@ -68,11 +66,9 @@ public Transactions withdraw(String accountNumber, BigDecimal amount){
     accountRepository.save(account);
     System.out.println("Saved txn into repo -> going to factory for account");
 
-    Transactions txn = transactionFactory.create(
+    return transactionFactory.create(
             account,"WITHDRAW",amount,before,after
     );
-
-    return txn;
 }
 
 

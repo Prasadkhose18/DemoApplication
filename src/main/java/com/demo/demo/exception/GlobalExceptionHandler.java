@@ -39,7 +39,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDTO> handleException(
-            Exception ex,
             HttpServletRequest request) {
 
         return buildErrorResponse(

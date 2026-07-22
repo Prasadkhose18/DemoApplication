@@ -8,9 +8,8 @@ import com.demo.demo.repository.UserRepository;
 import com.demo.demo.security.SecurityUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
-import java.util.UUID;
+
 
 @Service
 public class AccountsService {
@@ -19,10 +18,12 @@ public class AccountsService {
     private final UserRepository userRepository;
     private final AccountFactory accountFactory;
 
-    public AccountsService(AccountRepository accountRepository, UserRepository userRepository, AccountFactory accountFActory, AccountFactory accountFActory1) {
+    public AccountsService(AccountRepository accountRepository,
+                           UserRepository userRepository,
+                           AccountFactory accountFactory) {
         this.accountRepository = accountRepository;
         this.userRepository = userRepository;
-        this.accountFactory = accountFActory1;
+        this.accountFactory = accountFactory;
 
     }
 
@@ -35,7 +36,7 @@ public class AccountsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(()->new RuntimeException("User Not found"));
 
-        Accounts account = accountFactory.createAccount(user, "SAVINGS");
+        Accounts account = accountFactory.createAccount(user, accountType);
 
         return accountRepository.save(account);
     }

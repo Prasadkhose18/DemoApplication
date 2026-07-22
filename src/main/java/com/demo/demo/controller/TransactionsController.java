@@ -58,7 +58,6 @@ public class TransactionsController {
                 httpRequest.getRequestURI());
     }
 
-
     private ResponseEntity<ApiResponse<TransactionResponseDTO>> buildResponse(
             Transactions transaction,
             String message,

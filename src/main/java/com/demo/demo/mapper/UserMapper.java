@@ -19,7 +19,6 @@ public class UserMapper {
         return user;
     }
 
-
     public UserResponseDTO toResponseDTO(User user) {
 
         UserResponseDTO dto = new UserResponseDTO();
