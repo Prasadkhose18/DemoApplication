@@ -11,21 +11,48 @@ import java.util.Date;
 public class JwtService {
 
     private static final String SECRETE_KEY = "jhgctghjkjnbvjiguhlkn";
+    private static final long ACCESS_TOKEN_EXPIRATION = 15L * 60 * 1000; // 15 minutes
+    private static final long REFRESH_TOKEN_EXPIRATION = 7L * 24 * 60 * 60 * 1000; // 7 days
 
-    public String generateToker(UserDetails userDetails){
-        Algorithm algorithm = Algorithm.HMAC256(SECRETE_KEY);
+    private Algorithm getAlgorithm() {
+        return Algorithm.HMAC256(SECRETE_KEY);
+    }
+
+    public String generateAccessToken(UserDetails userDetails){
         return JWT.create()
                 .withSubject(userDetails.getUsername())
                 .withIssuedAt(new Date())
-                .withExpiresAt(new Date(System.currentTimeMillis() + 24L * 60 * 60 * 1000))
-                .sign(algorithm);
+                .withExpiresAt(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION))
+                .sign(getAlgorithm());
+    }
+
+    public String generateRefreshToken(UserDetails userDetails){
+        return JWT.create()
+                .withSubject(userDetails.getUsername())
+                .withIssuedAt(new Date())
+                .withExpiresAt(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
+                .sign(getAlgorithm());
+    }
+
+    // Backwards-compatible alias used by existing code
+    public String generateToker(UserDetails userDetails){
+        return generateAccessToken(userDetails);
     }
 
     public String extractUsername(String token) {
-        return JWT.require(Algorithm.HMAC256(SECRETE_KEY))
+        return JWT.require(getAlgorithm())
                 .build()
                 .verify(token)
                 .getSubject();
+    }
+
+    public boolean isTokenValid(String token) {
+        try {
+            extractUsername(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
 }

@@ -2,6 +2,7 @@ package com.demo.demo.controller;
 
 import com.demo.demo.dto.LoginRequestDTO;
 import com.demo.demo.dto.AuthResponseDTO;
+import com.demo.demo.dto.RefreshRequestDTO;
 import com.demo.demo.service.UserService;
 import com.demo.demo.security.JwtService;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,25 @@ public class AuthController {
             return ResponseEntity.status(401).build();
         }
         var userDetails = new com.demo.demo.security.CustomUserDetails(userOpt.get());
-        String token = jwtService.generateToker(userDetails);
-        return ResponseEntity.ok(new AuthResponseDTO(token));
+        String accessToken = jwtService.generateAccessToken(userDetails);
+        String refreshToken = jwtService.generateRefreshToken(userDetails);
+        return ResponseEntity.ok(new AuthResponseDTO(accessToken, refreshToken));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponseDTO> refresh(@RequestBody RefreshRequestDTO req){
+        String refreshToken = req.getRefreshToken();
+        try {
+            String username = jwtService.extractUsername(refreshToken);
+            var userOpt = userService.getUserByEmail(username);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(401).build();
+            }
+            var userDetails = new com.demo.demo.security.CustomUserDetails(userOpt.get());
+            String accessToken = jwtService.generateAccessToken(userDetails);
+            return ResponseEntity.ok(new AuthResponseDTO(accessToken, refreshToken));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).build();
+        }
     }
 }

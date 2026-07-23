@@ -17,7 +17,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 public class SecurityConfig {
 
     /**
-     * Password encoder used for hashing user passwords.
+      Password encoder used for hashing user passwords.
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -25,7 +25,7 @@ public class SecurityConfig {
     }
 
     /**
-     * Configure Spring Security.
+      Configure Spring Security.
      */
 
     @Bean
