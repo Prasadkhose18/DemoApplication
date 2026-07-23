@@ -34,25 +34,11 @@ public class JwtService {
                 .sign(getAlgorithm());
     }
 
-    // Backwards-compatible alias used by existing code
-    public String generateToker(UserDetails userDetails){
-        return generateAccessToken(userDetails);
-    }
-
     public String extractUsername(String token) {
         return JWT.require(getAlgorithm())
                 .build()
                 .verify(token)
                 .getSubject();
-    }
-
-    public boolean isTokenValid(String token) {
-        try {
-            extractUsername(token);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
     }
 
 }

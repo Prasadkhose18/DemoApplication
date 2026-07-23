@@ -1,54 +1,37 @@
 package com.demo.demo.controller;
 
-import com.demo.demo.dto.LoginRequestDTO;
 import com.demo.demo.dto.AuthResponseDTO;
+import com.demo.demo.dto.LoginRequestDTO;
 import com.demo.demo.dto.RefreshRequestDTO;
-import com.demo.demo.service.UserService;
-import com.demo.demo.security.JwtService;
+import com.demo.demo.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final UserService userService;
-    private final JwtService jwtService;
-    private final PasswordEncoder passwordEncoder;
+    private final AuthService authService;
 
-    public AuthController(UserService userService, JwtService jwtService, PasswordEncoder passwordEncoder){
-        this.userService = userService;
-        this.jwtService = jwtService;
-        this.passwordEncoder = passwordEncoder;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginRequestDTO req){
-        var userOpt = userService.getUserByEmail(req.getEmail());
-        if (userOpt.isEmpty() || !passwordEncoder.matches(req.getPassword(), userOpt.get().getPasswordHash())) {
-            return ResponseEntity.status(401).build();
-        }
-        var userDetails = new com.demo.demo.security.CustomUserDetails(userOpt.get());
-        String accessToken = jwtService.generateAccessToken(userDetails);
-        String refreshToken = jwtService.generateRefreshToken(userDetails);
-        return ResponseEntity.ok(new AuthResponseDTO(accessToken, refreshToken));
+    public ResponseEntity<AuthResponseDTO> login(
+            @RequestBody LoginRequestDTO request) {
+
+        return ResponseEntity.ok(
+                authService.login(request)
+        );
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponseDTO> refresh(@RequestBody RefreshRequestDTO req){
-        String refreshToken = req.getRefreshToken();
-        try {
-            String username = jwtService.extractUsername(refreshToken);
-            var userOpt = userService.getUserByEmail(username);
-            if (userOpt.isEmpty()) {
-                return ResponseEntity.status(401).build();
-            }
-            var userDetails = new com.demo.demo.security.CustomUserDetails(userOpt.get());
-            String accessToken = jwtService.generateAccessToken(userDetails);
-            return ResponseEntity.ok(new AuthResponseDTO(accessToken, refreshToken));
-        } catch (Exception e) {
-            return ResponseEntity.status(401).build();
-        }
+    public ResponseEntity<AuthResponseDTO> refresh(
+            @RequestBody RefreshRequestDTO request) {
+
+        return ResponseEntity.ok(
+                authService.refreshToken(request)
+        );
     }
 }
