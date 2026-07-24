@@ -1,53 +1,91 @@
 package com.demo.demo.security;
 
-import org.springframework.stereotype.Service;
-import org.springframework.security.core.userdetails.UserDetails;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
 
 import java.util.Date;
 
+@Slf4j
 @Service
 public class JwtService {
 
-    private static final String SECRETE_KEY = "jhgctghjkjnbvjiguhlkn";
-    private static final long ACCESS_TOKEN_EXPIRATION = 15L * 60 * 1000; // 15 minutes
-    private static final long REFRESH_TOKEN_EXPIRATION = 7L * 24 * 60 * 60 * 1000; // 7 days
+    @Value("${jwt.secret}")
+    private String secretKey;
+
+    @Value("${jwt.access-expiration}")
+    private long accessTokenExpiration;
+
+    @Value("${jwt.refresh-expiration}")
+    private long refreshTokenExpiration;
 
     private Algorithm getAlgorithm() {
-        return Algorithm.HMAC256(SECRETE_KEY);
+        return Algorithm.HMAC256(secretKey);
     }
 
-    public String generateAccessToken(UserDetails userDetails){
-        return JWT.create()
+    public String generateAccessToken(UserDetails userDetails) {
+
+        log.debug("Generating access token for user: {}", userDetails.getUsername());
+
+        String token = JWT.create()
                 .withSubject(userDetails.getUsername())
                 .withIssuedAt(new Date())
-                .withExpiresAt(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION))
+                .withExpiresAt(new Date(System.currentTimeMillis() + accessTokenExpiration))
                 .sign(getAlgorithm());
+
+        log.info("Access token generated successfully for user: {}", userDetails.getUsername());
+
+        return token;
     }
 
-    public String generateRefreshToken(UserDetails userDetails){
-        return JWT.create()
+    public String generateRefreshToken(UserDetails userDetails) {
+
+        log.debug("Generating refresh token for user: {}", userDetails.getUsername());
+
+        String token = JWT.create()
                 .withSubject(userDetails.getUsername())
                 .withIssuedAt(new Date())
-                .withExpiresAt(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
+                .withExpiresAt(new Date(System.currentTimeMillis() + refreshTokenExpiration))
                 .sign(getAlgorithm());
+
+        log.info("Refresh token generated successfully for user: {}", userDetails.getUsername());
+
+        return token;
     }
 
     public String extractUsername(String token) {
-        return JWT.require(getAlgorithm())
+
+        log.debug("Extracting username from JWT.");
+
+        String username = JWT.require(getAlgorithm())
                 .build()
                 .verify(token)
                 .getSubject();
+
+        log.debug("Username extracted successfully.");
+
+        return username;
     }
 
     public boolean isTokenValid(String token) {
+
+        log.debug("Validating JWT token.");
+
         try {
             extractUsername(token);
+
+            log.debug("JWT token validation successful.");
+
             return true;
-        } catch (Exception e) {
+
+        } catch (Exception ex) {
+
+            log.warn("JWT token validation failed: {}", ex.getMessage());
+
             return false;
         }
     }
-
 }
