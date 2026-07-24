@@ -6,26 +6,28 @@ import com.demo.demo.dto.TransactionResponseDTO;
 import com.demo.demo.entity.Transactions;
 import com.demo.demo.mapper.TransactionMapper;
 import com.demo.demo.service.TransactionService;
+import com.demo.demo.util.ResponseBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/transaction")
 public class TransactionsController {
 
     private final TransactionService transactionService;
     private final TransactionMapper transactionMapper;
+    private final ResponseBuilder responseBuilder;
 
     public TransactionsController(TransactionService transactionService,
-                                  TransactionMapper transactionMapper) {
+                                  TransactionMapper transactionMapper,
+                                  ResponseBuilder responseBuilder) {
         this.transactionService = transactionService;
         this.transactionMapper = transactionMapper;
+        this.responseBuilder = responseBuilder;
     }
 
     @PostMapping("/deposit")
@@ -33,14 +35,19 @@ public class TransactionsController {
             @Valid @RequestBody TransactionRequestDTO request,
             HttpServletRequest httpRequest) {
 
-        Transactions txn = transactionService.deposit(
+        log.info("Deposit request received for account {}", request.getAccountNumber());
+
+        Transactions transaction = transactionService.deposit(
                 request.getAccountNumber(),
                 request.getAmount());
 
-        return buildResponse(
-                txn,
+        log.info("Deposit completed. Reference ID: {}", transaction.getReferenceId());
+
+        return responseBuilder.created(
                 "Deposit successful",
-                httpRequest.getRequestURI());
+                transactionMapper.toResponseDTO(transaction),
+                httpRequest.getRequestURI()
+        );
     }
 
     @PostMapping("/withdraw")
@@ -48,27 +55,18 @@ public class TransactionsController {
             @Valid @RequestBody TransactionRequestDTO request,
             HttpServletRequest httpRequest) {
 
-        Transactions txn = transactionService.withdraw(
+        log.info("Withdrawal request received for account {}", request.getAccountNumber());
+
+        Transactions transaction = transactionService.withdraw(
                 request.getAccountNumber(),
                 request.getAmount());
 
-        return buildResponse(
-                txn,
+        log.info("Withdrawal completed. Reference ID: {}", transaction.getReferenceId());
+
+        return responseBuilder.created(
                 "Withdrawal successful",
-                httpRequest.getRequestURI());
-    }
-
-    private ResponseEntity<ApiResponse<TransactionResponseDTO>> buildResponse(
-            Transactions transaction,
-            String message,
-            String path) {
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(
-                        HttpStatus.CREATED,
-                        message,
-                        transactionMapper.toResponseDTO(transaction),
-                        path
-                ));
+                transactionMapper.toResponseDTO(transaction),
+                httpRequest.getRequestURI()
+        );
     }
 }
