@@ -46,16 +46,6 @@ public class TransactionFactory {
         return transaction;
     }
 
-    public String generateTransferReference() {
-
-        return "TRF-"
-                + UUID.randomUUID()
-                .toString()
-                .replace("-", "")
-                .substring(0, 12)
-                .toUpperCase();
-    }
-
     private String resolveReferenceId(String referenceId) {
 
         if (referenceId != null && !referenceId.isBlank()) {

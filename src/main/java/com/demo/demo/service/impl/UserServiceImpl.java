@@ -1,13 +1,13 @@
-package com.demo.demo.service;
+package com.demo.demo.service.impl;
 
 import com.demo.demo.entity.User;
 import com.demo.demo.exception.*;
 import com.demo.demo.repository.UserRepository;
 import com.demo.demo.security.CustomUserDetails;
+import com.demo.demo.service.IUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,13 +16,13 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-public class UserService implements UserDetailsService {
+public class UserServiceImpl implements IUserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository,
+                          PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }

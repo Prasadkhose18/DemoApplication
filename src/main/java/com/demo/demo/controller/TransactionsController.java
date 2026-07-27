@@ -10,7 +10,7 @@ import com.demo.demo.entity.Transactions;
 import com.demo.demo.mapper.TransactionMapper;
 import com.demo.demo.mapper.TransferMapper;
 import com.demo.demo.model.TransferResult;
-import com.demo.demo.service.TransactionService;
+import com.demo.demo.service.ITransactionService;
 import com.demo.demo.util.ApiResponseUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -21,11 +21,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/transactions")
 public class TransactionsController {
 
-    private final TransactionService transactionService;
+    private final ITransactionService transactionService;
     private final TransactionMapper transactionMapper;
     private final TransferMapper transferMapper;
 
-    public TransactionsController(TransactionService transactionService,
+    public TransactionsController(ITransactionService transactionService,
                                   TransactionMapper transactionMapper,
                                   TransferMapper transferMapper) {
         this.transactionService = transactionService;

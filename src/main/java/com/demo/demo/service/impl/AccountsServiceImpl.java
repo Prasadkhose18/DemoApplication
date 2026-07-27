@@ -1,9 +1,11 @@
-package com.demo.demo.service;
+package com.demo.demo.service.impl;
 
 import com.demo.demo.entity.Accounts;
 import com.demo.demo.entity.User;
 import com.demo.demo.factory.AccountFactory;
 import com.demo.demo.repository.AccountRepository;
+import com.demo.demo.service.IAccountsService;
+import com.demo.demo.service.ICurrentUserService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -12,15 +14,15 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class AccountsService {
+public class AccountsServiceImpl implements IAccountsService {
 
     private final AccountRepository accountRepository;
     private final AccountFactory accountFactory;
-    private final CurrentUserService currentUserService;
+    private final ICurrentUserService currentUserService;
 
-    public AccountsService(AccountRepository accountRepository,
-                           AccountFactory accountFactory,
-                           CurrentUserService currentUserService) {
+    public AccountsServiceImpl(AccountRepository accountRepository,
+                              AccountFactory accountFactory,
+                              ICurrentUserService currentUserService) {
 
         this.accountRepository = accountRepository;
         this.accountFactory = accountFactory;

@@ -5,7 +5,7 @@ import com.demo.demo.dto.AccountResponseDTO;
 import com.demo.demo.dto.ApiResponse;
 import com.demo.demo.entity.Accounts;
 import com.demo.demo.mapper.AccountMapper;
-import com.demo.demo.service.AccountsService;
+import com.demo.demo.service.IAccountsService;
 import com.demo.demo.util.ResponseBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -20,11 +20,11 @@ import java.util.List;
 @RequestMapping("/accounts")
 public class AccountController {
 
-    private final AccountsService accountsService;
+    private final IAccountsService accountsService;
     private final AccountMapper accountMapper;
     private final ResponseBuilder responseBuilder;
 
-    public AccountController(AccountsService accountsService,
+    public AccountController(IAccountsService accountsService,
                              AccountMapper accountMapper,
                              ResponseBuilder responseBuilder) {
         this.accountsService = accountsService;

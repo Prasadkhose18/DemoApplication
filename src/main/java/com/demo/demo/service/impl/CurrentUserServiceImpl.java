@@ -1,19 +1,20 @@
-package com.demo.demo.service;
+package com.demo.demo.service.impl;
 
 import com.demo.demo.entity.User;
 import com.demo.demo.exception.ResourceNotFoundException;
 import com.demo.demo.repository.UserRepository;
 import com.demo.demo.security.SecurityUtil;
+import com.demo.demo.service.ICurrentUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class CurrentUserService {
+public class CurrentUserServiceImpl implements ICurrentUserService {
 
     private final UserRepository userRepository;
 
-    public CurrentUserService(UserRepository userRepository) {
+    public CurrentUserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 

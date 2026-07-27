@@ -1,4 +1,4 @@
-package com.demo.demo.service;
+package com.demo.demo.service.impl;
 
 import com.demo.demo.dto.AuthResponseDTO;
 import com.demo.demo.dto.LoginRequestDTO;
@@ -7,21 +7,23 @@ import com.demo.demo.entity.User;
 import com.demo.demo.exception.InvalidCredentialsException;
 import com.demo.demo.security.CustomUserDetails;
 import com.demo.demo.security.JwtService;
+import com.demo.demo.service.IAuthService;
+import com.demo.demo.service.IUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class AuthService {
+public class AuthServiceImpl implements IAuthService {
 
-    private final UserService userService;
+    private final IUserService userService;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
 
-    public AuthService(UserService userService,
-                       JwtService jwtService,
-                       PasswordEncoder passwordEncoder) {
+    public AuthServiceImpl(IUserService userService,
+                          JwtService jwtService,
+                          PasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;

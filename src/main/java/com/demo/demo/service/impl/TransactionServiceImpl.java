@@ -1,4 +1,4 @@
-package com.demo.demo.service;
+package com.demo.demo.service.impl;
 
 import com.demo.demo.dto.BalanceResponseDTO;
 import com.demo.demo.dto.TransferRequestDTO;
@@ -8,6 +8,8 @@ import com.demo.demo.enums.TransactionType;
 import com.demo.demo.exception.InsufficientBalanceException;
 import com.demo.demo.factory.TransactionFactory;
 import com.demo.demo.model.TransferResult;
+import com.demo.demo.service.ITransactionService;
+import com.demo.demo.service.IValidationService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,13 +18,13 @@ import java.math.BigDecimal;
 
 @Slf4j
 @Service
-public class TransactionService {
+public class TransactionServiceImpl implements ITransactionService {
 
-    private final ValidationService validationService;
+    private final IValidationService validationService;
     private final TransactionFactory transactionFactory;
 
-    public TransactionService(ValidationService validationService,
-                              TransactionFactory transactionFactory) {
+    public TransactionServiceImpl(IValidationService validationService,
+                                 TransactionFactory transactionFactory) {
         this.validationService = validationService;
         this.transactionFactory = transactionFactory;
     }
@@ -163,6 +165,20 @@ public class TransactionService {
                 .build();
     }
 
+    public BalanceResponseDTO getBalance(String accountNumber) {
+
+        log.info("Balance enquiry received for account {}", accountNumber);
+
+        Accounts account = validationService.validateOwnership(accountNumber);
+
+        log.info("Balance fetched successfully for account {}", accountNumber);
+
+        return BalanceResponseDTO.builder()
+                .accountNumber(account.getAccountNumber())
+                .balance(account.getBalance())
+                .build();
+    }
+
     private Transactions createTransaction(
             Accounts account,
             TransactionType type,
@@ -196,19 +212,5 @@ public class TransactionService {
             throw new InsufficientBalanceException(
                     "Insufficient balance");
         }
-    }
-
-    public BalanceResponseDTO getBalance(String accountNumber) {
-
-        log.info("Balance enquiry received for account {}", accountNumber);
-
-        Accounts account = validationService.validateOwnership(accountNumber);
-
-        log.info("Balance fetched successfully for account {}", accountNumber);
-
-        return BalanceResponseDTO.builder()
-                .accountNumber(account.getAccountNumber())
-                .balance(account.getBalance())
-                .build();
     }
 }
