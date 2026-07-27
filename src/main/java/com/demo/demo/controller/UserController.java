@@ -5,7 +5,7 @@ import com.demo.demo.dto.UserRequestDTO;
 import com.demo.demo.dto.UserResponseDTO;
 import com.demo.demo.entity.User;
 import com.demo.demo.mapper.UserMapper;
-import com.demo.demo.service.IUserService;
+import com.demo.demo.service.UserService;
 import com.demo.demo.util.ResponseBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -18,11 +18,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/users")
 public class UserController {
 
-    private final IUserService userService;
+    private final UserService userService;
     private final UserMapper userMapper;
     private final ResponseBuilder responseBuilder;
 
-    public UserController(IUserService userService,
+    public UserController(UserService userService,
                           UserMapper userMapper,
                           ResponseBuilder responseBuilder) {
         this.userService = userService;

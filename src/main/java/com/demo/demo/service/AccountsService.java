@@ -3,7 +3,7 @@ package com.demo.demo.service;
 import com.demo.demo.entity.Accounts;
 import java.util.List;
 
-public interface IAccountsService {
+public interface AccountsService {
 
     Accounts createAccount(String accountType);
 

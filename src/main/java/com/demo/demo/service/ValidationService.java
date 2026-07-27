@@ -3,7 +3,7 @@ package com.demo.demo.service;
 import com.demo.demo.entity.Accounts;
 import java.math.BigDecimal;
 
-public interface IValidationService {
+public interface ValidationService {
 
     void validateAmount(BigDecimal amount);
 

@@ -7,8 +7,8 @@ import com.demo.demo.exception.InvalidTransactionException;
 import com.demo.demo.exception.ResourceNotFoundException;
 import com.demo.demo.exception.UnauthorizedAccessException;
 import com.demo.demo.repository.AccountRepository;
-import com.demo.demo.service.ICurrentUserService;
-import com.demo.demo.service.IValidationService;
+import com.demo.demo.service.CurrentUserService;
+import com.demo.demo.service.ValidationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -16,13 +16,13 @@ import java.math.BigDecimal;
 
 @Slf4j
 @Service
-public class ValidationServiceImpl implements IValidationService {
+public class ValidationServiceImpl implements ValidationService {
 
     private final AccountRepository accountRepository;
-    private final ICurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
     public ValidationServiceImpl(AccountRepository accountRepository,
-                                ICurrentUserService currentUserService) {
+                                CurrentUserService currentUserService) {
         this.accountRepository = accountRepository;
         this.currentUserService = currentUserService;
     }

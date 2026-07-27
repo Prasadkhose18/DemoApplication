@@ -4,7 +4,7 @@ import com.demo.demo.entity.User;
 import com.demo.demo.exception.*;
 import com.demo.demo.repository.UserRepository;
 import com.demo.demo.security.CustomUserDetails;
-import com.demo.demo.service.IUserService;
+import com.demo.demo.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,7 +16,7 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-public class UserServiceImpl implements IUserService {
+public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;

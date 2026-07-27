@@ -4,7 +4,7 @@ import com.demo.demo.dto.AuthResponseDTO;
 import com.demo.demo.dto.LoginRequestDTO;
 import com.demo.demo.dto.RefreshRequestDTO;
 
-public interface IAuthService {
+public interface AuthService {
 
     AuthResponseDTO login(LoginRequestDTO request);
 

@@ -7,7 +7,7 @@ import com.demo.demo.model.TransferResult;
 
 import java.math.BigDecimal;
 
-public interface ITransactionService {
+public interface TransactionService {
 
     Transactions deposit(String accountNumber, BigDecimal amount);
 

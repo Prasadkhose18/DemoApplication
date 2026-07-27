@@ -4,13 +4,13 @@ import com.demo.demo.entity.User;
 import com.demo.demo.exception.ResourceNotFoundException;
 import com.demo.demo.repository.UserRepository;
 import com.demo.demo.security.SecurityUtil;
-import com.demo.demo.service.ICurrentUserService;
+import com.demo.demo.service.CurrentUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class CurrentUserServiceImpl implements ICurrentUserService {
+public class CurrentUserServiceImpl implements CurrentUserService {
 
     private final UserRepository userRepository;
 

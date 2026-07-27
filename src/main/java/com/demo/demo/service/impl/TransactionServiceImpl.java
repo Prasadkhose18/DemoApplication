@@ -8,8 +8,8 @@ import com.demo.demo.enums.TransactionType;
 import com.demo.demo.exception.InsufficientBalanceException;
 import com.demo.demo.factory.TransactionFactory;
 import com.demo.demo.model.TransferResult;
-import com.demo.demo.service.ITransactionService;
-import com.demo.demo.service.IValidationService;
+import com.demo.demo.service.TransactionService;
+import com.demo.demo.service.ValidationService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,13 +18,13 @@ import java.math.BigDecimal;
 
 @Slf4j
 @Service
-public class TransactionServiceImpl implements ITransactionService {
+public class TransactionServiceImpl implements TransactionService {
 
-    private final IValidationService validationService;
+    private final ValidationService validationService;
     private final TransactionFactory transactionFactory;
 
-    public TransactionServiceImpl(IValidationService validationService,
-                                 TransactionFactory transactionFactory) {
+    public TransactionServiceImpl(ValidationService validationService,
+                                  TransactionFactory transactionFactory) {
         this.validationService = validationService;
         this.transactionFactory = transactionFactory;
     }

@@ -4,8 +4,8 @@ import com.demo.demo.entity.Accounts;
 import com.demo.demo.entity.User;
 import com.demo.demo.factory.AccountFactory;
 import com.demo.demo.repository.AccountRepository;
-import com.demo.demo.service.IAccountsService;
-import com.demo.demo.service.ICurrentUserService;
+import com.demo.demo.service.AccountsService;
+import com.demo.demo.service.CurrentUserService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,15 +14,15 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class AccountsServiceImpl implements IAccountsService {
+public class AccountsServiceImpl implements AccountsService {
 
     private final AccountRepository accountRepository;
     private final AccountFactory accountFactory;
-    private final ICurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
     public AccountsServiceImpl(AccountRepository accountRepository,
                               AccountFactory accountFactory,
-                              ICurrentUserService currentUserService) {
+                              CurrentUserService currentUserService) {
 
         this.accountRepository = accountRepository;
         this.accountFactory = accountFactory;

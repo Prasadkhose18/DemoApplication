@@ -2,7 +2,7 @@ package com.demo.demo.service;
 
 import com.demo.demo.entity.User;
 
-public interface ICurrentUserService {
+public interface CurrentUserService {
 
     String getEmail();
 

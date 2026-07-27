@@ -4,7 +4,7 @@ import com.demo.demo.dto.ApiResponse;
 import com.demo.demo.dto.AuthResponseDTO;
 import com.demo.demo.dto.LoginRequestDTO;
 import com.demo.demo.dto.RefreshRequestDTO;
-import com.demo.demo.service.IAuthService;
+import com.demo.demo.service.AuthService;
 import com.demo.demo.util.ResponseBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final IAuthService authService;
+    private final AuthService authService;
     private final ResponseBuilder responseBuilder;
 
-    public AuthController(IAuthService authService,
+    public AuthController(AuthService authService,
                           ResponseBuilder responseBuilder) {
         this.authService = authService;
         this.responseBuilder = responseBuilder;
