@@ -1,14 +1,13 @@
 package com.demo.demo.service;
 
+import com.demo.demo.dto.BalanceResponseDTO;
+import com.demo.demo.dto.TransferRequestDTO;
 import com.demo.demo.entity.Accounts;
 import com.demo.demo.entity.Transactions;
-import com.demo.demo.entity.User;
+import com.demo.demo.enums.TransactionType;
 import com.demo.demo.exception.InsufficientBalanceException;
-import com.demo.demo.exception.InvalidTransactionException;
-import com.demo.demo.exception.ResourceNotFoundException;
-import com.demo.demo.exception.UnauthorizedAccessException;
 import com.demo.demo.factory.TransactionFactory;
-import com.demo.demo.repository.AccountRepository;
+import com.demo.demo.model.TransferResult;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,43 +18,41 @@ import java.math.BigDecimal;
 @Service
 public class TransactionService {
 
-    private final AccountRepository accountRepository;
+    private final ValidationService validationService;
     private final TransactionFactory transactionFactory;
-    private final CurrentUserService currentUserService;
 
-    public TransactionService(AccountRepository accountRepository,
-                              TransactionFactory transactionFactory,
-                              CurrentUserService currentUserService) {
-        this.accountRepository = accountRepository;
+    public TransactionService(ValidationService validationService,
+                              TransactionFactory transactionFactory) {
+        this.validationService = validationService;
         this.transactionFactory = transactionFactory;
-        this.currentUserService = currentUserService;
     }
 
     @Transactional
     public Transactions deposit(String accountNumber, BigDecimal amount) {
 
-        log.info("Deposit request received. Account: {}, Amount: {}", accountNumber, amount);
+        log.info("Deposit request received. Account: {}, Amount: {}",
+                accountNumber,
+                amount);
 
-        validateAmount(amount);
+        validationService.validateAmount(amount);
 
-        Accounts account = validateOwnership(accountNumber);
+        Accounts account = validationService.validateOwnership(accountNumber);
 
         BigDecimal before = account.getBalance();
         BigDecimal after = before.add(amount);
 
-        updateBalance(account, after);
+        validationService.updateBalance(account, after);
 
-        Transactions transaction = transactionFactory.create(
+        Transactions transaction = createTransaction(
                 account,
-                "DEPOSIT",
+                TransactionType.DEPOSIT,
                 amount,
                 before,
                 after
         );
 
-        log.info("Deposit successful. Account: {}, New Balance: {}",
-                accountNumber,
-                after);
+        log.info("Deposit successful. Reference: {}",
+                transaction.getReferenceId());
 
         return transaction;
     }
@@ -63,89 +60,155 @@ public class TransactionService {
     @Transactional
     public Transactions withdraw(String accountNumber, BigDecimal amount) {
 
-        log.info("Withdrawal request received. Account: {}, Amount: {}", accountNumber, amount);
+        log.info("Withdrawal request received. Account: {}, Amount: {}",
+                accountNumber,
+                amount);
 
-        validateAmount(amount);
+        validationService.validateAmount(amount);
 
-        Accounts account = validateOwnership(accountNumber);
+        Accounts account = validationService.validateOwnership(accountNumber);
 
-        if (account.getBalance().compareTo(amount) < 0) {
-
-            log.warn("Withdrawal failed. Insufficient balance. Account: {}", accountNumber);
-
-            throw new InsufficientBalanceException("Insufficient balance");
-        }
+        validateSufficientBalance(account, amount);
 
         BigDecimal before = account.getBalance();
         BigDecimal after = before.subtract(amount);
 
-        updateBalance(account, after);
+        validationService.updateBalance(account, after);
 
-        Transactions transaction = transactionFactory.create(
+        Transactions transaction = createTransaction(
                 account,
-                "WITHDRAW",
+                TransactionType.WITHDRAW,
                 amount,
                 before,
                 after
         );
 
-        log.info("Withdrawal successful. Account: {}, Remaining Balance: {}",
-                accountNumber,
-                after);
+        log.info("Withdrawal successful. Reference: {}",
+                transaction.getReferenceId());
 
         return transaction;
     }
 
-    /**
-     * Validate transaction amount.
-     */
-    private void validateAmount(BigDecimal amount) {
+    public BigDecimal checkBalance(String accountNumber) {
 
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+        log.info("Balance enquiry requested for account {}",
+                accountNumber);
 
-            log.warn("Invalid transaction amount: {}", amount);
+        Accounts account = validationService.validateOwnership(accountNumber);
 
-            throw new InvalidTransactionException(
-                    "Amount must be greater than zero");
-        }
+        log.info("Balance enquiry successful. Account: {}",
+                accountNumber);
+
+        return account.getBalance();
     }
 
-    /**
-     * Updates account balance.
-     */
-    private void updateBalance(Accounts account, BigDecimal newBalance) {
+    @Transactional
+    public TransferResult transfer(TransferRequestDTO request) {
 
-        account.setBalance(newBalance);
-        accountRepository.save(account);
+        String fromAccountNumber = request.getFromAccountNumber();
+        String toAccountNumber = request.getToAccountNumber();
+        BigDecimal amount = request.getAmount();
 
-        log.debug("Balance updated for account {}", account.getAccountNumber());
+        log.info(
+                "Transfer initiated. From: {}, To: {}, Amount: {}",
+                fromAccountNumber,
+                toAccountNumber,
+                amount
+        );
+
+        validationService.validateAmount(amount);
+
+        Accounts sender =
+                validationService.validateOwnership(fromAccountNumber);
+
+        Accounts receiver =
+                validationService.getAccount(toAccountNumber);
+
+        validateSufficientBalance(sender, amount);
+
+        BigDecimal senderBefore = sender.getBalance();
+        BigDecimal senderAfter = senderBefore.subtract(amount);
+
+        BigDecimal receiverBefore = receiver.getBalance();
+        BigDecimal receiverAfter = receiverBefore.add(amount);
+
+        validationService.updateBalance(sender, senderAfter);
+        validationService.updateBalance(receiver, receiverAfter);
+
+        Transactions debitTransaction = createTransaction(
+                sender,
+                TransactionType.TRANSFER_DEBIT,
+                amount,
+                senderBefore,
+                senderAfter
+        );
+
+        Transactions creditTransaction = createTransaction(
+                receiver,
+                TransactionType.TRANSFER_CREDIT,
+                amount,
+                receiverBefore,
+                receiverAfter
+        );
+
+        log.info(
+                "Transfer completed successfully. From: {}, To: {}",
+                fromAccountNumber,
+                toAccountNumber
+        );
+
+        return TransferResult.builder()
+                .debitTransaction(debitTransaction)
+                .creditTransaction(creditTransaction)
+                .build();
     }
 
+    private Transactions createTransaction(
+            Accounts account,
+            TransactionType type,
+            BigDecimal amount,
+            BigDecimal before,
+            BigDecimal after) {
 
-    private Accounts validateOwnership(String accountNumber) {
+        return transactionFactory.create(
+                account,
+                type,
+                amount,
+                before,
+                after,
+                null
+        );
+    }
 
-        Accounts account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> {
+    private void validateSufficientBalance(
+            Accounts account,
+            BigDecimal amount) {
 
-                    log.warn("Account not found: {}", accountNumber);
-
-                    return new ResourceNotFoundException("Account not found");
-                });
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        if (!account.getUser().getUserId().equals(currentUser.getUserId())) {
+        if (account.getBalance().compareTo(amount) < 0) {
 
             log.warn(
-                    "Unauthorized access attempt. User: {}, Account: {}",
-                    currentUser.getEmail(),
-                    accountNumber
+                    "Insufficient balance. Account: {}, Available: {}, Requested: {}",
+                    account.getAccountNumber(),
+                    account.getBalance(),
+                    amount
             );
 
-            throw new UnauthorizedAccessException(
-                    "You do not have permission to access this account");
+            throw new InsufficientBalanceException(
+                    "Insufficient balance");
         }
+    }
 
-        return account;
+    public BalanceResponseDTO getBalance(String accountNumber) {
+
+        log.info("Balance enquiry received for account {}", accountNumber);
+
+        Accounts account = validationService.validateOwnership(accountNumber);
+
+        log.info("Balance fetched successfully for account {}", accountNumber);
+
+        return BalanceResponseDTO.builder()
+                .accountNumber(account.getAccountNumber())
+                .balance(account.getBalance())
+                .build();
     }
 }

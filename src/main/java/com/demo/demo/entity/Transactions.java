@@ -1,46 +1,45 @@
 package com.demo.demo.entity;
 
-
+import com.demo.demo.enums.TransactionType;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-
-@Data
 @Entity
 @Table(name = "transactions")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Transactions {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "transaction_id")
-    private Long id;
+    private Long transactionId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id",nullable = false)
+    @JoinColumn(name = "account_id", nullable = false)
     private Accounts account;
 
-    @Column(name = "amount")
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TransactionType transactionType;
+
+    @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal amount;
 
-    @Column(name = "transaction_type", nullable = false)
-    private String transactionType;
-
-    @Column(name = "refereance_id", nullable = false)
-    private String referenceId;
-
-    @Column(name = "transaction_time", nullable = false)
-    private LocalDateTime transactionTime;
-
-    @Column(name = "balance_before", nullable = false)
+    @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal balanceBefore;
 
-    @Column(name = "balance_after", nullable = false)
+    @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal balanceAfter;
+
+    @Column(nullable = false, unique = true)
+    private String referenceId;
+
+    @Column(nullable = false)
+    private LocalDateTime transactionTime;
 }
-
-
-
-

@@ -14,7 +14,7 @@ public class TransactionMapper {
 
         dto.setAccountNumber(transaction.getAccount().getAccountNumber());
         dto.setReferenceId(transaction.getReferenceId());
-        dto.setTransactionType(transaction.getTransactionType());
+        dto.setTransactionType(transaction.getTransactionType().name());
         dto.setAmount(transaction.getAmount());
         dto.setBalanceBefore(transaction.getBalanceBefore());
         dto.setBalanceAfter(transaction.getBalanceAfter());
