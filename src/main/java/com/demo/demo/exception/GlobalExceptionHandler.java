@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -161,5 +162,19 @@ public class GlobalExceptionHandler {
         error.setPath(path);
 
         return ResponseEntity.status(status).body(error);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponseDTO> handleHttpMessageNotReadable(
+            HttpMessageNotReadableException ex,
+            HttpServletRequest request) {
+
+        log.warn("Invalid request body: {}", ex.getMessage());
+
+        return buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                "Request body is missing or invalid",
+                request.getRequestURI()
+        );
     }
 }

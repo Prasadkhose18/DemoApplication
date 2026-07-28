@@ -65,7 +65,7 @@ public class JwtService {
                 .verify(token)
                 .getSubject();
 
-        log.debug("Username extracted successfully.");
+        log.debug("Username '{}' extracted successfully.", username);
 
         return username;
     }
@@ -75,17 +75,18 @@ public class JwtService {
         log.debug("Validating JWT token.");
 
         try {
+
             extractUsername(token);
 
             log.debug("JWT token validation successful.");
 
-            return false;
+            return true;
 
         } catch (Exception ex) {
 
             log.warn("JWT token validation failed: {}", ex.getMessage());
 
-            return true;
+            return false;
         }
     }
 }

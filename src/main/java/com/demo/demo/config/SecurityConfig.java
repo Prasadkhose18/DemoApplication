@@ -1,43 +1,38 @@
 package com.demo.demo.config;
 
 import com.demo.demo.security.JwtAuthenticationFilter;
+import com.demo.demo.security.PreAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
-    /**
-      Password encoder used for hashing user passwords.
-     */
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-      Configure Spring Security.
-     */
-
     @Bean
-    public SecurityFilterChain securityFilterChain(
+    SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            JwtAuthenticationFilter jwtAuthenticationFilter) {
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            PreAuthFilter preAuthFilter) throws Exception {
 
         http
-                // Disable CSRF because we are using JWT
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // Authorization Rules
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**", "/users/create")
                         .permitAll()
@@ -45,16 +40,17 @@ public class SecurityConfig {
                         .authenticated()
                 )
 
-                // Stateless Session
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                );
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS));
 
-        // Execute JWT filter before UsernamePasswordAuthenticationFilter
+        http.addFilterBefore(
+                preAuthFilter,
+                UsernamePasswordAuthenticationFilter.class);
+
         http.addFilterBefore(
                 jwtAuthenticationFilter,
-                UsernamePasswordAuthenticationFilter.class
-        );
+                UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

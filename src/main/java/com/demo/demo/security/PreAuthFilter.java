@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,18 +19,13 @@ import java.io.IOException;
 
 @Slf4j
 @Component
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class PreAuthFilter extends OncePerRequestFilter {
 
-    private final JwtService jwtService;
     private final UserService userService;
     private final SecurityProperties securityProperties;
 
-    public JwtAuthenticationFilter(
-            JwtService jwtService,
-            UserService userService,
-            SecurityProperties securityProperties) {
-
-        this.jwtService = jwtService;
+    public PreAuthFilter(UserService userService,
+                         SecurityProperties securityProperties) {
         this.userService = userService;
         this.securityProperties = securityProperties;
     }
@@ -41,40 +37,54 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
-        if (securityProperties.getMode() != AuthMode.JWT) {
+        if (securityProperties.getMode() != AuthMode.PREAUTH) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        log.debug("Processing request {}", request.getRequestURI());
+        String preAuthKey =
+                request.getHeader(SecurityConstants.PRE_AUTH_KEY_HEADER);
 
-        String authHeader =
-                request.getHeader(SecurityConstants.AUTHORIZATION_HEADER);
+        if (preAuthKey == null || preAuthKey.isBlank()) {
 
-        if (authHeader == null ||
-                !authHeader.startsWith(SecurityConstants.BEARER_PREFIX)) {
+            log.warn("Missing Pre-Auth key.");
 
-            filterChain.doFilter(request, response);
+            response.sendError(
+                    HttpStatus.UNAUTHORIZED.value(),
+                    "Missing Pre-Auth Key");
+
             return;
         }
 
-        String token = authHeader.substring(
-                SecurityConstants.BEARER_PREFIX.length());
+        if (!preAuthKey.equals(securityProperties.getPreAuthKey())) {
 
-        if (!jwtService.isTokenValid(token)) {
+            log.warn("Invalid Pre-Auth key received.");
 
-            log.warn("Invalid JWT token");
+            response.sendError(
+                    HttpStatus.UNAUTHORIZED.value(),
+                    "Invalid Pre-Auth Key");
 
-            filterChain.doFilter(request, response);
             return;
         }
 
-        String username = jwtService.extractUsername(token);
+        String email =
+                request.getHeader(SecurityConstants.PRE_AUTH_HEADER);
+
+        if (email == null || email.isBlank()) {
+
+            log.warn("Missing user email header.");
+
+            response.sendError(
+                    HttpStatus.UNAUTHORIZED.value(),
+                    "Missing User Email");
+
+            return;
+        }
 
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
 
             UserDetails userDetails =
-                    userService.loadUserByUsername(username);
+                    userService.loadUserByUsername(email);
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
@@ -85,7 +95,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext()
                     .setAuthentication(authentication);
 
-            log.info("JWT authentication successful for {}", username);
+            log.info("Pre-authentication successful for {}", email);
         }
 
         filterChain.doFilter(request, response);
