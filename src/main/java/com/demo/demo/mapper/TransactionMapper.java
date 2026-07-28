@@ -1,7 +1,7 @@
 package com.demo.demo.mapper;
 
 
-import com.demo.demo.dto.TransactionResponseDTO;
+import com.demo.demo.dto.response.TransactionResponseDTO;
 import com.demo.demo.entity.Transactions;
 import org.springframework.stereotype.Component;
 

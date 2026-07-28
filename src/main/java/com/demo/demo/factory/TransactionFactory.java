@@ -1,41 +1,40 @@
 package com.demo.demo.factory;
 
-import com.demo.demo.entity.Accounts;
+import com.demo.demo.dto.internal.TransactionFactoryRequest;
 import com.demo.demo.entity.Transactions;
-import com.demo.demo.enums.TransactionType;
+import com.demo.demo.enums.ReferenceType;
+import com.demo.demo.util.ReferenceIdGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Slf4j
 @Component
 public class TransactionFactory {
 
-    public Transactions create(
-            Accounts account,
-            TransactionType transactionType,
-            BigDecimal amount,
-            BigDecimal balanceBefore,
-            BigDecimal balanceAfter,
-            String referenceId) {
+    private final ReferenceIdGenerator referenceIdGenerator;
+
+    public TransactionFactory(ReferenceIdGenerator referenceIdGenerator) {
+        this.referenceIdGenerator = referenceIdGenerator;
+    }
+
+    public Transactions create(TransactionFactoryRequest request) {
 
         log.debug(
                 "Creating {} transaction for account {}",
-                transactionType,
-                account.getAccountNumber()
+                request.getTransactionType(),
+                request.getAccount().getAccountNumber()
         );
 
         Transactions transaction = new Transactions();
 
-        transaction.setAccount(account);
-        transaction.setTransactionType(transactionType);
-        transaction.setAmount(amount);
-        transaction.setBalanceBefore(balanceBefore);
-        transaction.setBalanceAfter(balanceAfter);
-        transaction.setReferenceId(resolveReferenceId(referenceId));
+        transaction.setAccount(request.getAccount());
+        transaction.setTransactionType(request.getTransactionType());
+        transaction.setAmount(request.getAmount());
+        transaction.setBalanceBefore(request.getBalanceBefore());
+        transaction.setBalanceAfter(request.getBalanceAfter());
+        transaction.setReferenceId(resolveReferenceId(request.getReferenceId()));
         transaction.setTransactionTime(LocalDateTime.now());
 
         log.info(
@@ -52,11 +51,6 @@ public class TransactionFactory {
             return referenceId;
         }
 
-        return "TXN-"
-                + UUID.randomUUID()
-                .toString()
-                .replace("-", "")
-                .substring(0, 12)
-                .toUpperCase();
+        return referenceIdGenerator.generate(ReferenceType.TRANSACTION);
     }
 }

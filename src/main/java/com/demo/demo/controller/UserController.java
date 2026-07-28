@@ -1,8 +1,8 @@
 package com.demo.demo.controller;
 
-import com.demo.demo.dto.ApiResponse;
-import com.demo.demo.dto.UserRequestDTO;
-import com.demo.demo.dto.UserResponseDTO;
+import com.demo.demo.dto.response.ApiResponse;
+import com.demo.demo.dto.request.UserRequestDTO;
+import com.demo.demo.dto.response.UserResponseDTO;
 import com.demo.demo.entity.User;
 import com.demo.demo.mapper.UserMapper;
 import com.demo.demo.service.UserService;

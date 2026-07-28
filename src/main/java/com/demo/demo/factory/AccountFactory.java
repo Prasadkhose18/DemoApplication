@@ -1,19 +1,29 @@
 package com.demo.demo.factory;
 
-
 import com.demo.demo.entity.Accounts;
 import com.demo.demo.entity.User;
+import com.demo.demo.enums.ReferenceType;
+import com.demo.demo.util.ReferenceIdGenerator;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 @Component
 public class AccountFactory {
+
+    private final ReferenceIdGenerator referenceIdGenerator;
+
+    public AccountFactory(ReferenceIdGenerator referenceIdGenerator) {
+        this.referenceIdGenerator = referenceIdGenerator;
+    }
+
     public Accounts createAccount(User user, String accountType) {
 
         Accounts account = new Accounts();
-        account.setAccountNumber(generateAccountNumber());
+
+        account.setAccountNumber(
+                referenceIdGenerator.generate(ReferenceType.ACCOUNT)
+        );
         account.setAccountType(accountType.toUpperCase());
         account.setBalance(BigDecimal.ZERO);
         account.setStatus("ACTIVE");
@@ -21,15 +31,4 @@ public class AccountFactory {
 
         return account;
     }
-
-
-private String generateAccountNumber(){
-        return "ACC-"+ UUID.randomUUID()
-                .toString()
-                .replace("-","")
-                .substring(0,10)
-                .toUpperCase();
-    }
 }
-
-

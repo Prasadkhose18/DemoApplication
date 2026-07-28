@@ -1,8 +1,8 @@
 package com.demo.demo.service.impl;
 
-import com.demo.demo.dto.AuthResponseDTO;
-import com.demo.demo.dto.LoginRequestDTO;
-import com.demo.demo.dto.RefreshRequestDTO;
+import com.demo.demo.dto.response.AuthResponseDTO;
+import com.demo.demo.dto.request.LoginRequestDTO;
+import com.demo.demo.dto.request.RefreshRequestDTO;
 import com.demo.demo.entity.User;
 import com.demo.demo.exception.InvalidCredentialsException;
 import com.demo.demo.security.CustomUserDetails;
@@ -57,7 +57,7 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("Refresh token request received.");
 
-        if (!jwtService.isTokenValid(request.getRefreshToken())) {
+        if (jwtService.isTokenValid(request.getRefreshToken())) {
 
             log.warn("Invalid refresh token.");
 

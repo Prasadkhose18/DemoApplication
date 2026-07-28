@@ -1,6 +1,6 @@
 package com.demo.demo.mapper;
 
-import com.demo.demo.dto.TransferResponseDTO;
+import com.demo.demo.dto.response.TransferResponseDTO;
 import com.demo.demo.model.TransferResult;
 import org.springframework.stereotype.Component;
 

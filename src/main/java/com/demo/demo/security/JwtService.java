@@ -79,13 +79,13 @@ public class JwtService {
 
             log.debug("JWT token validation successful.");
 
-            return true;
+            return false;
 
         } catch (Exception ex) {
 
             log.warn("JWT token validation failed: {}", ex.getMessage());
 
-            return false;
+            return true;
         }
     }
 }

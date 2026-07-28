@@ -1,6 +1,6 @@
 package com.demo.demo.util;
 
-import com.demo.demo.dto.ApiResponse;
+import com.demo.demo.dto.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 

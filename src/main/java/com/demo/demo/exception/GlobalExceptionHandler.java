@@ -1,6 +1,6 @@
 package com.demo.demo.exception;
 
-import com.demo.demo.dto.ErrorResponseDTO;
+import com.demo.demo.dto.response.ErrorResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

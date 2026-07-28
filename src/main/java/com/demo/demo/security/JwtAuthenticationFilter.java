@@ -51,7 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String token = authHeader.substring(7);
 
-        if (!jwtService.isTokenValid(token)) {
+        if (jwtService.isTokenValid(token)) {
 
             log.warn("Invalid JWT token received.");
 

@@ -1,8 +1,8 @@
 package com.demo.demo.controller;
 
-import com.demo.demo.dto.AccountRequestDTO;
-import com.demo.demo.dto.AccountResponseDTO;
-import com.demo.demo.dto.ApiResponse;
+import com.demo.demo.dto.request.AccountRequestDTO;
+import com.demo.demo.dto.response.AccountResponseDTO;
+import com.demo.demo.dto.response.ApiResponse;
 import com.demo.demo.entity.Accounts;
 import com.demo.demo.mapper.AccountMapper;
 import com.demo.demo.service.AccountsService;

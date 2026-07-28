@@ -1,7 +1,7 @@
 package com.demo.demo.service;
 
-import com.demo.demo.dto.BalanceResponseDTO;
-import com.demo.demo.dto.TransferRequestDTO;
+import com.demo.demo.dto.response.BalanceResponseDTO;
+import com.demo.demo.dto.request.TransferRequestDTO;
 import com.demo.demo.entity.Transactions;
 import com.demo.demo.model.TransferResult;
 

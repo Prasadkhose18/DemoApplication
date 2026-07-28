@@ -1,9 +1,9 @@
 package com.demo.demo.controller;
 
-import com.demo.demo.dto.ApiResponse;
-import com.demo.demo.dto.AuthResponseDTO;
-import com.demo.demo.dto.LoginRequestDTO;
-import com.demo.demo.dto.RefreshRequestDTO;
+import com.demo.demo.dto.response.ApiResponse;
+import com.demo.demo.dto.response.AuthResponseDTO;
+import com.demo.demo.dto.request.LoginRequestDTO;
+import com.demo.demo.dto.request.RefreshRequestDTO;
 import com.demo.demo.service.AuthService;
 import com.demo.demo.util.ResponseBuilder;
 import jakarta.servlet.http.HttpServletRequest;

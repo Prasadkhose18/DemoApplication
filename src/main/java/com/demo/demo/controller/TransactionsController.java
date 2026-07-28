@@ -1,11 +1,11 @@
 package com.demo.demo.controller;
 
-import com.demo.demo.dto.ApiResponse;
-import com.demo.demo.dto.BalanceResponseDTO;
-import com.demo.demo.dto.TransactionRequestDTO;
-import com.demo.demo.dto.TransactionResponseDTO;
-import com.demo.demo.dto.TransferRequestDTO;
-import com.demo.demo.dto.TransferResponseDTO;
+import com.demo.demo.dto.response.ApiResponse;
+import com.demo.demo.dto.response.BalanceResponseDTO;
+import com.demo.demo.dto.request.TransactionRequestDTO;
+import com.demo.demo.dto.response.TransactionResponseDTO;
+import com.demo.demo.dto.request.TransferRequestDTO;
+import com.demo.demo.dto.response.TransferResponseDTO;
 import com.demo.demo.entity.Transactions;
 import com.demo.demo.mapper.TransactionMapper;
 import com.demo.demo.mapper.TransferMapper;

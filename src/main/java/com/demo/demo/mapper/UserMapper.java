@@ -1,8 +1,8 @@
 package com.demo.demo.mapper;
 
 
-import com.demo.demo.dto.UserRequestDTO;
-import com.demo.demo.dto.UserResponseDTO;
+import com.demo.demo.dto.request.UserRequestDTO;
+import com.demo.demo.dto.response.UserResponseDTO;
 import com.demo.demo.entity.User;
 import org.springframework.stereotype.Component;
 

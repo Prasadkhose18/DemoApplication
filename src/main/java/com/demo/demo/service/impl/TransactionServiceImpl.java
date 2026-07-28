@@ -1,7 +1,8 @@
 package com.demo.demo.service.impl;
 
-import com.demo.demo.dto.BalanceResponseDTO;
-import com.demo.demo.dto.TransferRequestDTO;
+import com.demo.demo.dto.internal.TransactionFactoryRequest;
+import com.demo.demo.dto.response.BalanceResponseDTO;
+import com.demo.demo.dto.request.TransferRequestDTO;
 import com.demo.demo.entity.Accounts;
 import com.demo.demo.entity.Transactions;
 import com.demo.demo.enums.TransactionType;
@@ -186,15 +187,19 @@ public class TransactionServiceImpl implements TransactionService {
             BigDecimal before,
             BigDecimal after) {
 
-        return transactionFactory.create(
-                account,
-                type,
-                amount,
-                before,
-                after,
-                null
-        );
+        TransactionFactoryRequest request =
+                TransactionFactoryRequest.builder()
+                        .account(account)
+                        .transactionType(type)
+                        .amount(amount)
+                        .balanceBefore(before)
+                        .balanceAfter(after)
+                        .referenceId(null)
+                        .build();
+
+        return transactionFactory.create(request);
     }
+
 
     private void validateSufficientBalance(
             Accounts account,

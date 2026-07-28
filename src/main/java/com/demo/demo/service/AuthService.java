@@ -1,8 +1,8 @@
 package com.demo.demo.service;
 
-import com.demo.demo.dto.AuthResponseDTO;
-import com.demo.demo.dto.LoginRequestDTO;
-import com.demo.demo.dto.RefreshRequestDTO;
+import com.demo.demo.dto.response.AuthResponseDTO;
+import com.demo.demo.dto.request.LoginRequestDTO;
+import com.demo.demo.dto.request.RefreshRequestDTO;
 
 public interface AuthService {
 

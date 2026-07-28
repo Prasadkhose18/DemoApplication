@@ -1,7 +1,7 @@
 package com.demo.demo.mapper;
 
 
-import com.demo.demo.dto.AccountResponseDTO;
+import com.demo.demo.dto.response.AccountResponseDTO;
 import com.demo.demo.entity.Accounts;
 import org.springframework.stereotype.Component;
 
