@@ -34,9 +34,6 @@ public class TransferMapper {
                         result.getDebitTransaction()
                                 .getBalanceAfter())
 
-                .receiverBalance(
-                        result.getCreditTransaction()
-                                .getBalanceAfter())
 
                 .transactionTime(
                         result.getDebitTransaction()

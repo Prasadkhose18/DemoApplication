@@ -37,8 +37,13 @@ public class Transactions {
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal balanceAfter;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "reference_id", nullable = false, unique = true)
     private String referenceId;
+
+    // Compatibility with the pre-existing misspelled, non-null database
+    // column. This can be removed after that column is dropped in a migration.
+    @Column(name = "refereance_id", nullable = false, unique = true)
+    private String legacyReferenceId;
 
     @Column(nullable = false)
     private LocalDateTime transactionTime;

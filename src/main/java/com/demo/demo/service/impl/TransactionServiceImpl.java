@@ -9,11 +9,12 @@ import com.demo.demo.enums.TransactionType;
 import com.demo.demo.exception.InsufficientBalanceException;
 import com.demo.demo.factory.TransactionFactory;
 import com.demo.demo.model.TransferResult;
+import com.demo.demo.repository.TransactionRepository;
 import com.demo.demo.service.TransactionService;
 import com.demo.demo.service.ValidationService;
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -23,14 +24,17 @@ public class TransactionServiceImpl implements TransactionService {
 
     private final ValidationService validationService;
     private final TransactionFactory transactionFactory;
+    private final TransactionRepository transactionRepository;
 
     public TransactionServiceImpl(ValidationService validationService,
-                                  TransactionFactory transactionFactory) {
+                                  TransactionFactory transactionFactory,
+                                  TransactionRepository transactionRepository) {
         this.validationService = validationService;
         this.transactionFactory = transactionFactory;
+        this.transactionRepository = transactionRepository;
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Transactions deposit(String accountNumber, BigDecimal amount) {
 
         log.info("Deposit request received. Account: {}, Amount: {}",
@@ -39,7 +43,8 @@ public class TransactionServiceImpl implements TransactionService {
 
         validationService.validateAmount(amount);
 
-        Accounts account = validationService.validateOwnership(accountNumber);
+        Accounts account = validationService.getAccountForUpdate(accountNumber);
+        validationService.validateOwnership(accountNumber);
 
         BigDecimal before = account.getBalance();
         BigDecimal after = before.add(amount);
@@ -60,7 +65,7 @@ public class TransactionServiceImpl implements TransactionService {
         return transaction;
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Transactions withdraw(String accountNumber, BigDecimal amount) {
 
         log.info("Withdrawal request received. Account: {}, Amount: {}",
@@ -69,7 +74,8 @@ public class TransactionServiceImpl implements TransactionService {
 
         validationService.validateAmount(amount);
 
-        Accounts account = validationService.validateOwnership(accountNumber);
+        Accounts account = validationService.getAccountForUpdate(accountNumber);
+        validationService.validateOwnership(accountNumber);
 
         validateSufficientBalance(account, amount);
 
@@ -105,7 +111,7 @@ public class TransactionServiceImpl implements TransactionService {
         return account.getBalance();
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public TransferResult transfer(TransferRequestDTO request) {
 
         String fromAccountNumber = request.getFromAccountNumber();
@@ -120,12 +126,30 @@ public class TransactionServiceImpl implements TransactionService {
         );
 
         validationService.validateAmount(amount);
+        validationService.validateTransferAccounts(
+                fromAccountNumber,
+                toAccountNumber
+        );
+
+        // Acquire locks in a consistent order. This prevents two opposing
+        // transfers from deadlocking while ensuring balances cannot be read
+        // or changed concurrently.
+        boolean senderComesFirst =
+                fromAccountNumber.compareTo(toAccountNumber) < 0;
+
+        Accounts firstLockedAccount = validationService.getAccountForUpdate(
+                senderComesFirst ? fromAccountNumber : toAccountNumber
+        );
+        Accounts secondLockedAccount = validationService.getAccountForUpdate(
+                senderComesFirst ? toAccountNumber : fromAccountNumber
+        );
 
         Accounts sender =
-                validationService.validateOwnership(fromAccountNumber);
+                senderComesFirst ? firstLockedAccount : secondLockedAccount;
+        validationService.validateOwnership(fromAccountNumber);
 
         Accounts receiver =
-                validationService.getAccount(toAccountNumber);
+                senderComesFirst ? secondLockedAccount : firstLockedAccount;
 
         validateSufficientBalance(sender, amount);
 
@@ -197,7 +221,7 @@ public class TransactionServiceImpl implements TransactionService {
                         .referenceId(null)
                         .build();
 
-        return transactionFactory.create(request);
+        return transactionRepository.save(transactionFactory.create(request));
     }
 
 

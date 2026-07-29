@@ -19,6 +19,5 @@ public class TransferResponseDTO {
     private String toAccountNumber;
     private BigDecimal amount;
     private BigDecimal senderBalance;
-    private BigDecimal receiverBalance;
     private LocalDateTime transactionTime;
 }

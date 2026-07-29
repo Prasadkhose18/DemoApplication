@@ -15,5 +15,7 @@ public interface ValidationService {
 
     Accounts getAccount(String accountNumber);
 
+    Accounts getAccountForUpdate(String accountNumber);
+
     void updateBalance(Accounts account, BigDecimal newBalance);
 }

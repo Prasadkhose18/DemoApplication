@@ -17,17 +17,34 @@ public class ApiResponse<T> {
     private String message;
     private T data;
     private String path;
+
     public static <T> ApiResponse<T> success(
             HttpStatus status,
             String message,
             T data,
             String path
     ) {
+
         return new ApiResponse<>(
                 LocalDateTime.now(),
                 status.value(),
                 message,
                 data,
+                path
+        );
+    }
+
+    public static <T> ApiResponse<T> error(
+            HttpStatus status,
+            String message,
+            String path
+    ) {
+
+        return new ApiResponse<>(
+                LocalDateTime.now(),
+                status.value(),
+                message,
+                null,
                 path
         );
     }

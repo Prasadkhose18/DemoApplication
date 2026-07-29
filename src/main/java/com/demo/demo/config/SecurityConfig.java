@@ -1,5 +1,7 @@
 package com.demo.demo.config;
 
+import com.demo.demo.security.CustomAccessDeniedHandler;
+import com.demo.demo.security.CustomAuthenticationEntryPoint;
 import com.demo.demo.security.JwtAuthenticationFilter;
 import com.demo.demo.security.PreAuthFilter;
 import org.springframework.context.annotation.Bean;
@@ -28,7 +30,10 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             JwtAuthenticationFilter jwtAuthenticationFilter,
-            PreAuthFilter preAuthFilter) throws Exception {
+            PreAuthFilter preAuthFilter,
+            CustomAuthenticationEntryPoint authenticationEntryPoint,
+            CustomAccessDeniedHandler accessDeniedHandler)
+            throws Exception {
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -38,6 +43,11 @@ public class SecurityConfig {
                         .permitAll()
                         .anyRequest()
                         .authenticated()
+                )
+
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler)
                 )
 
                 .sessionManagement(session ->

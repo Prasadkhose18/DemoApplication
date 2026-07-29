@@ -6,12 +6,14 @@ import com.demo.demo.repository.UserRepository;
 import com.demo.demo.security.CustomUserDetails;
 import com.demo.demo.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.NonNull;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -85,6 +87,15 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<User> getAllUsers() {
+
+        log.info("Fetching all users.");
+
+        return userRepository.findAll();
+    }
+
 
     public Optional<User> getUserByEmail(String email) {
 
@@ -95,7 +106,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public UserDetails loadUserByUsername(@NonNull String username)
+    public UserDetails loadUserByUsername( String username)
             throws UsernameNotFoundException {
 
         log.debug("Loading UserDetails for username: {}", username);
@@ -111,4 +122,6 @@ public class UserServiceImpl implements UserService {
 
         return new CustomUserDetails(user);
     }
+
+
 }

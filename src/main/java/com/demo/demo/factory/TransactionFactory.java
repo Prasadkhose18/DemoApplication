@@ -34,7 +34,9 @@ public class TransactionFactory {
         transaction.setAmount(request.getAmount());
         transaction.setBalanceBefore(request.getBalanceBefore());
         transaction.setBalanceAfter(request.getBalanceAfter());
-        transaction.setReferenceId(resolveReferenceId(request.getReferenceId()));
+        String referenceId = resolveReferenceId(request.getReferenceId());
+        transaction.setReferenceId(referenceId);
+        transaction.setLegacyReferenceId(referenceId);
         transaction.setTransactionTime(LocalDateTime.now());
 
         log.info(
