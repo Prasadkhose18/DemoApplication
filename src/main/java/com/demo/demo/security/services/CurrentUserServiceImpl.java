@@ -1,4 +1,4 @@
-package com.demo.demo.security;
+package com.demo.demo.security.services;
 
 import com.demo.demo.entity.User;
 import com.demo.demo.exception.ResourceNotFoundException;

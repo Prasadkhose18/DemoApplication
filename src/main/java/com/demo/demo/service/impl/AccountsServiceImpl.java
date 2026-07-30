@@ -4,7 +4,7 @@ import com.demo.demo.entity.Accounts;
 import com.demo.demo.entity.User;
 import com.demo.demo.factory.AccountFactory;
 import com.demo.demo.repository.AccountRepository;
-import com.demo.demo.security.CurrentUserService;
+import com.demo.demo.security.services.CurrentUserService;
 import com.demo.demo.service.AccountsService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;

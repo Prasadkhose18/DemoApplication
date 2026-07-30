@@ -6,7 +6,7 @@ import com.demo.demo.dto.request.RefreshRequestDTO;
 import com.demo.demo.entity.User;
 import com.demo.demo.exception.InvalidCredentialsException;
 import com.demo.demo.security.CustomUserDetails;
-import com.demo.demo.security.JwtService;
+import com.demo.demo.security.services.JwtService;
 import com.demo.demo.service.AuthService;
 import com.demo.demo.service.UserService;
 import lombok.extern.slf4j.Slf4j;

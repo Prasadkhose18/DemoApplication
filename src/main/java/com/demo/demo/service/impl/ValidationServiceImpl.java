@@ -7,7 +7,7 @@ import com.demo.demo.exception.InvalidTransactionException;
 import com.demo.demo.exception.ResourceNotFoundException;
 import com.demo.demo.exception.UnauthorizedAccessException;
 import com.demo.demo.repository.AccountRepository;
-import com.demo.demo.security.CurrentUserService;
+import com.demo.demo.security.services.CurrentUserService;
 import com.demo.demo.service.ValidationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

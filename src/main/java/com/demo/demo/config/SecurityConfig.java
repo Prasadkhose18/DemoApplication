@@ -2,8 +2,8 @@ package com.demo.demo.config;
 
 import com.demo.demo.security.CustomAccessDeniedHandler;
 import com.demo.demo.security.CustomAuthenticationEntryPoint;
-import com.demo.demo.security.JwtAuthenticationFilter;
-import com.demo.demo.security.PreAuthFilter;
+import com.demo.demo.security.filters.JwtAuthenticationFilter;
+import com.demo.demo.security.filters.PreAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;

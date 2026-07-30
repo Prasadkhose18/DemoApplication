@@ -1,13 +1,15 @@
-package com.demo.demo.security;
+package com.demo.demo.security.filters;
 
 import com.demo.demo.config.SecurityProperties;
+import com.demo.demo.security.AuthMode;
+import com.demo.demo.security.services.JwtService;
+import com.demo.demo.security.SecurityConstants;
 import com.demo.demo.service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,13 +20,18 @@ import java.io.IOException;
 
 @Slf4j
 @Component
-public class PreAuthFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private final JwtService jwtService;
     private final UserService userService;
     private final SecurityProperties securityProperties;
 
-    public PreAuthFilter(UserService userService,
-                         SecurityProperties securityProperties) {
+    public JwtAuthenticationFilter(
+            JwtService jwtService,
+            UserService userService,
+            SecurityProperties securityProperties) {
+
+        this.jwtService = jwtService;
         this.userService = userService;
         this.securityProperties = securityProperties;
     }
@@ -36,54 +43,40 @@ public class PreAuthFilter extends OncePerRequestFilter {
              FilterChain filterChain)
             throws ServletException, IOException {
 
-        if (securityProperties.getMode() != AuthMode.PREAUTH) {
+        if (securityProperties.getMode() != AuthMode.JWT) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String preAuthKey =
-                request.getHeader(SecurityConstants.PRE_AUTH_KEY_HEADER);
+        log.debug("Processing request {}", request.getRequestURI());
 
-        if (preAuthKey == null || preAuthKey.isBlank()) {
+        String authHeader =
+                request.getHeader(SecurityConstants.AUTHORIZATION_HEADER);
 
-            log.warn("Missing Pre-Auth key.");
+        if (authHeader == null ||
+                !authHeader.startsWith(SecurityConstants.BEARER_PREFIX)) {
 
-            response.sendError(
-                    HttpStatus.UNAUTHORIZED.value(),
-                    "Missing Pre-Auth Key");
-
+            filterChain.doFilter(request, response);
             return;
         }
 
-        if (!preAuthKey.equals(securityProperties.getPreAuthKey())) {
+        String token = authHeader.substring(
+                SecurityConstants.BEARER_PREFIX.length());
 
-            log.warn("Invalid Pre-Auth key received.");
+        if (!jwtService.isTokenValid(token)) {
 
-            response.sendError(
-                    HttpStatus.UNAUTHORIZED.value(),
-                    "Invalid Pre-Auth Key");
+            log.warn("Invalid JWT token");
 
+            filterChain.doFilter(request, response);
             return;
         }
 
-        String email =
-                request.getHeader(SecurityConstants.PRE_AUTH_HEADER);
-
-        if (email == null || email.isBlank()) {
-
-            log.warn("Missing user email header.");
-
-            response.sendError(
-                    HttpStatus.UNAUTHORIZED.value(),
-                    "Missing User Email");
-
-            return;
-        }
+        String username = jwtService.extractUsername(token);
 
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
 
             UserDetails userDetails =
-                    userService.loadUserByUsername(email);
+                    userService.loadUserByUsername(username);
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
@@ -94,7 +87,7 @@ public class PreAuthFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext()
                     .setAuthentication(authentication);
 
-            log.info("Pre-authentication successful for {}", email);
+            log.info("JWT authentication successful for {}", username);
         }
 
         filterChain.doFilter(request, response);
