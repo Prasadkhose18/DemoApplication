@@ -1,5 +1,7 @@
 package com.demo.demo.service.impl;
 
+import com.demo.demo.audit.event.TransactionCompletedEvent;
+import com.demo.demo.audit.producer.TransactionEventPublisher;
 import com.demo.demo.dto.internal.TransactionFactoryRequest;
 import com.demo.demo.dto.response.BalanceResponseDTO;
 import com.demo.demo.dto.request.TransferRequestDTO;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -25,13 +28,16 @@ public class TransactionServiceImpl implements TransactionService {
     private final ValidationService validationService;
     private final TransactionFactory transactionFactory;
     private final TransactionRepository transactionRepository;
+    private final TransactionEventPublisher transactionEventPublisher;
 
     public TransactionServiceImpl(ValidationService validationService,
                                   TransactionFactory transactionFactory,
-                                  TransactionRepository transactionRepository) {
+                                  TransactionRepository transactionRepository,
+                                  TransactionEventPublisher transactionEventPublisher) {
         this.validationService = validationService;
         this.transactionFactory = transactionFactory;
         this.transactionRepository = transactionRepository;
+        this.transactionEventPublisher = transactionEventPublisher;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -58,6 +64,8 @@ public class TransactionServiceImpl implements TransactionService {
                 before,
                 after
         );
+
+        publishCompletedEvent(transaction, null);
 
         log.info("Deposit successful. Reference: {}",
                 transaction.getReferenceId());
@@ -91,6 +99,8 @@ public class TransactionServiceImpl implements TransactionService {
                 before,
                 after
         );
+
+        publishCompletedEvent(transaction, null);
 
         log.info("Withdrawal successful. Reference: {}",
                 transaction.getReferenceId());
@@ -178,6 +188,8 @@ public class TransactionServiceImpl implements TransactionService {
                 receiverAfter
         );
 
+        publishCompletedEvent(debitTransaction, receiver.getAccountNumber());
+
         log.info(
                 "Transfer completed successfully. From: {}, To: {}",
                 fromAccountNumber,
@@ -241,5 +253,23 @@ public class TransactionServiceImpl implements TransactionService {
             throw new InsufficientBalanceException(
                     "Insufficient balance");
         }
+    }
+
+    private void publishCompletedEvent(Transactions transaction,
+                                       String counterpartyAccountNumber) {
+
+        transactionEventPublisher.publishAfterCommit(
+                new TransactionCompletedEvent(
+                        UUID.randomUUID(),
+                        transaction.getReferenceId(),
+                        transaction.getTransactionType(),
+                        transaction.getAccount().getAccountNumber(),
+                        counterpartyAccountNumber,
+                        transaction.getAmount(),
+                        transaction.getBalanceBefore(),
+                        transaction.getBalanceAfter(),
+                        transaction.getTransactionTime()
+                )
+        );
     }
 }
