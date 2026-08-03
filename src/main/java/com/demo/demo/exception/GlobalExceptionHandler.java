@@ -10,6 +10,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -103,6 +104,34 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(InvalidStatementRequestException.class)
+    public ResponseEntity<ErrorResponseDTO> handleInvalidStatementRequest(
+            InvalidStatementRequestException ex,
+            HttpServletRequest request) {
+
+        log.warn("Invalid statement request: {}", ex.getMessage());
+
+        return buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+    }
+
+    @ExceptionHandler(StatementEmailDeliveryException.class)
+    public ResponseEntity<ErrorResponseDTO> handleStatementEmailDelivery(
+            StatementEmailDeliveryException ex,
+            HttpServletRequest request) {
+
+        log.error("Bank statement email delivery failed", ex);
+
+        return buildErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Unable to send bank statement email",
+                request.getRequestURI()
+        );
+    }
+
     @ExceptionHandler(InsufficientBalanceException.class)
     public ResponseEntity<ErrorResponseDTO> handleInsufficientBalance(
             InsufficientBalanceException ex,
@@ -176,6 +205,20 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 "Request body is missing or invalid",
+                request.getRequestURI()
+        );
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponseDTO> handleArgumentTypeMismatch(
+            MethodArgumentTypeMismatchException ex,
+            HttpServletRequest request) {
+
+        log.warn("Invalid request parameter {}: {}", ex.getName(), ex.getValue());
+
+        return buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                "Invalid value for " + ex.getName(),
                 request.getRequestURI()
         );
     }

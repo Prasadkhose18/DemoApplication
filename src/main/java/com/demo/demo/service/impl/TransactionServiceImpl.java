@@ -1,12 +1,13 @@
 package com.demo.demo.service.impl;
 
-import com.demo.demo.audit.event.TransactionCompletedEvent;
-import com.demo.demo.audit.producer.TransactionEventPublisher;
+import com.demo.demo.event.TransactionCompletedEvent;
+import com.demo.demo.event.TransactionEventPublisher;
 import com.demo.demo.dto.internal.TransactionFactoryRequest;
 import com.demo.demo.dto.response.BalanceResponseDTO;
 import com.demo.demo.dto.request.TransferRequestDTO;
 import com.demo.demo.entity.Accounts;
 import com.demo.demo.entity.Transactions;
+import com.demo.demo.entity.User;
 import com.demo.demo.enums.TransactionType;
 import com.demo.demo.exception.InsufficientBalanceException;
 import com.demo.demo.factory.TransactionFactory;
@@ -14,12 +15,12 @@ import com.demo.demo.model.TransferResult;
 import com.demo.demo.repository.TransactionRepository;
 import com.demo.demo.service.TransactionService;
 import com.demo.demo.service.ValidationService;
+import com.demo.demo.security.services.CurrentUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -29,15 +30,18 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionFactory transactionFactory;
     private final TransactionRepository transactionRepository;
     private final TransactionEventPublisher transactionEventPublisher;
+    private final CurrentUserService currentUserService;
 
     public TransactionServiceImpl(ValidationService validationService,
                                   TransactionFactory transactionFactory,
                                   TransactionRepository transactionRepository,
-                                  TransactionEventPublisher transactionEventPublisher) {
+                                  TransactionEventPublisher transactionEventPublisher,
+                                  CurrentUserService currentUserService) {
         this.validationService = validationService;
         this.transactionFactory = transactionFactory;
         this.transactionRepository = transactionRepository;
         this.transactionEventPublisher = transactionEventPublisher;
+        this.currentUserService = currentUserService;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -65,7 +69,7 @@ public class TransactionServiceImpl implements TransactionService {
                 after
         );
 
-        publishCompletedEvent(transaction, null);
+        publishCompletedEvent(transaction);
 
         log.info("Deposit successful. Reference: {}",
                 transaction.getReferenceId());
@@ -100,7 +104,7 @@ public class TransactionServiceImpl implements TransactionService {
                 after
         );
 
-        publishCompletedEvent(transaction, null);
+        publishCompletedEvent(transaction);
 
         log.info("Withdrawal successful. Reference: {}",
                 transaction.getReferenceId());
@@ -188,7 +192,7 @@ public class TransactionServiceImpl implements TransactionService {
                 receiverAfter
         );
 
-        publishCompletedEvent(debitTransaction, receiver.getAccountNumber());
+        publishCompletedEvent(debitTransaction);
 
         log.info(
                 "Transfer completed successfully. From: {}, To: {}",
@@ -255,18 +259,20 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
-    private void publishCompletedEvent(Transactions transaction,
-                                       String counterpartyAccountNumber) {
+    private void publishCompletedEvent(Transactions transaction) {
 
-        transactionEventPublisher.publishAfterCommit(
+        User currentUser = currentUserService.getCurrentUser();
+
+        transactionEventPublisher.publish(
                 new TransactionCompletedEvent(
-                        UUID.randomUUID(),
+                        transaction.getTransactionId(),
                         transaction.getReferenceId(),
-                        transaction.getTransactionType(),
                         transaction.getAccount().getAccountNumber(),
-                        counterpartyAccountNumber,
+                        transaction.getAccount().getAccountType(),
+                        currentUser.getName(),
+                        currentUser.getEmail(),
+                        transaction.getTransactionType(),
                         transaction.getAmount(),
-                        transaction.getBalanceBefore(),
                         transaction.getBalanceAfter(),
                         transaction.getTransactionTime()
                 )

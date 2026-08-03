@@ -1,12 +1,11 @@
-package com.demo.demo.audit.producer;
+package com.demo.demo.event;
 
-import com.demo.demo.audit.event.TransactionCompletedEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 @Slf4j
-@Service
+@Component
 public class TransactionEventPublisher {
 
     private final ApplicationEventPublisher applicationEventPublisher;
@@ -15,9 +14,9 @@ public class TransactionEventPublisher {
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
-    public void publishAfterCommit(TransactionCompletedEvent event) {
+    public void publish(TransactionCompletedEvent event) {
         applicationEventPublisher.publishEvent(event);
-        log.debug("Transaction audit event registered for after-commit publishing: {}",
+        log.info("Transaction completed event published. Reference: {}",
                 event.referenceId());
     }
 }

@@ -4,6 +4,7 @@ import com.demo.demo.entity.Accounts;
 import com.demo.demo.entity.User;
 import com.demo.demo.exception.InsufficientBalanceException;
 import com.demo.demo.exception.InvalidTransactionException;
+import com.demo.demo.exception.InvalidStatementRequestException;
 import com.demo.demo.exception.ResourceNotFoundException;
 import com.demo.demo.exception.UnauthorizedAccessException;
 import com.demo.demo.repository.AccountRepository;
@@ -13,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Slf4j
 @Service
@@ -137,6 +139,55 @@ public class ValidationServiceImpl implements ValidationService {
 
                     return new ResourceNotFoundException("Account not found");
                 });
+    }
+
+    @Override
+    public void validateStatementRequest(String accountNumber,
+                                         LocalDate fromDate,
+                                         LocalDate toDate) {
+
+        if (accountNumber == null || accountNumber.isBlank()) {
+            log.warn("Invalid statement request: account number is missing");
+            throw new InvalidStatementRequestException("Account number is required");
+        }
+
+        if (fromDate == null || toDate == null) {
+            log.warn("Invalid statement request: date range is missing");
+            throw new InvalidStatementRequestException(
+                    "From date and to date are required");
+        }
+
+        LocalDate today = LocalDate.now();
+        if (fromDate.isAfter(toDate)) {
+            log.warn("Invalid statement request: from date {} is after to date {}",
+                    fromDate, toDate);
+            throw new InvalidStatementRequestException(
+                    "From date cannot be after to date");
+        }
+
+        if (toDate.isAfter(today)) {
+            log.warn("Invalid statement request: to date {} is in the future", toDate);
+            throw new InvalidStatementRequestException(
+                    "To date cannot be in the future");
+        }
+
+        if (fromDate.isBefore(today.minusMonths(3))) {
+            log.warn("Invalid statement request: from date {} is older than three months",
+                    fromDate);
+            throw new InvalidStatementRequestException(
+                    "From date cannot be older than three months");
+        }
+    }
+
+    @Override
+    public void validateAccountIsActive(Accounts account) {
+
+        if (!"ACTIVE".equalsIgnoreCase(account.getStatus())) {
+            log.warn("Account validation failed. Account: {}, Status: {}",
+                    account.getAccountNumber(), account.getStatus());
+            throw new InvalidStatementRequestException(
+                    "Account is not active");
+        }
     }
 
     @Override
