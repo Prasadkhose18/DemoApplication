@@ -5,7 +5,7 @@ import com.demo.demo.dto.response.AuthResponseDTO;
 import com.demo.demo.dto.request.LoginRequestDTO;
 import com.demo.demo.dto.request.RefreshRequestDTO;
 import com.demo.demo.service.AuthService;
-import com.demo.demo.util.ResponseBuilder;
+import com.demo.demo.util.APIResponseBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -18,10 +18,10 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
-    private final ResponseBuilder responseBuilder;
+    private final APIResponseBuilder responseBuilder;
 
     public AuthController(AuthService authService,
-                          ResponseBuilder responseBuilder) {
+                          APIResponseBuilder responseBuilder) {
         this.authService = authService;
         this.responseBuilder = responseBuilder;
     }

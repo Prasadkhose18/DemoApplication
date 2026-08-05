@@ -6,7 +6,7 @@ import com.demo.demo.dto.response.ApiResponse;
 import com.demo.demo.entity.Accounts;
 import com.demo.demo.mapper.AccountMapper;
 import com.demo.demo.service.AccountsService;
-import com.demo.demo.util.ResponseBuilder;
+import com.demo.demo.util.APIResponseBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -22,11 +22,11 @@ public class AccountController {
 
     private final AccountsService accountsService;
     private final AccountMapper accountMapper;
-    private final ResponseBuilder responseBuilder;
+    private final APIResponseBuilder responseBuilder;
 
     public AccountController(AccountsService accountsService,
                              AccountMapper accountMapper,
-                             ResponseBuilder responseBuilder) {
+                             APIResponseBuilder responseBuilder) {
         this.accountsService = accountsService;
         this.accountMapper = accountMapper;
         this.responseBuilder = responseBuilder;

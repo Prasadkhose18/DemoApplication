@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ResponseBuilder {
+public class APIResponseBuilder {
 
     public <T> ResponseEntity<ApiResponse<T>> success(
             HttpStatus status,

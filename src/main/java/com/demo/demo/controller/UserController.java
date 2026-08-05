@@ -6,7 +6,7 @@ import com.demo.demo.dto.response.UserResponseDTO;
 import com.demo.demo.entity.User;
 import com.demo.demo.mapper.UserMapper;
 import com.demo.demo.service.UserService;
-import com.demo.demo.util.ResponseBuilder;
+import com.demo.demo.util.APIResponseBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -20,11 +20,11 @@ public class UserController {
 
     private final UserService userService;
     private final UserMapper userMapper;
-    private final ResponseBuilder responseBuilder;
+    private final APIResponseBuilder responseBuilder;
 
     public UserController(UserService userService,
                           UserMapper userMapper,
-                          ResponseBuilder responseBuilder) {
+                          APIResponseBuilder responseBuilder) {
         this.userService = userService;
         this.userMapper = userMapper;
         this.responseBuilder = responseBuilder;

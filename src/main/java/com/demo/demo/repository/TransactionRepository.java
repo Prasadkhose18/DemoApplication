@@ -18,4 +18,12 @@ public interface TransactionRepository extends JpaRepository<Transactions, Long>
             Accounts account,
             LocalDateTime fromDateTime,
             LocalDateTime toDateTime);
+
+    List<Transactions> findAllByTransactionTimeBetweenOrderByTransactionTimeAsc(
+            LocalDateTime start,
+            LocalDateTime end
+    );
+
+    List<Transactions> findAllByTransactionTimeBetweenOrderByTransactionTimeDesc(LocalDateTime start, LocalDateTime end);
+
 }

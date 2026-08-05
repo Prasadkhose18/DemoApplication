@@ -3,7 +3,7 @@ package com.demo.demo.controller;
 import com.demo.demo.dto.response.ApiResponse;
 import com.demo.demo.dto.response.BankStatementResponseDTO;
 import com.demo.demo.service.BankStatementService;
-import com.demo.demo.util.ResponseBuilder;
+import com.demo.demo.util.APIResponseBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +20,10 @@ import java.time.LocalDate;
 public class BankStatementController {
 
     private final BankStatementService bankStatementService;
-    private final ResponseBuilder responseBuilder;
+    private final APIResponseBuilder responseBuilder;
 
     public BankStatementController(BankStatementService bankStatementService,
-                                   ResponseBuilder responseBuilder) {
+                                   APIResponseBuilder responseBuilder) {
         this.bankStatementService = bankStatementService;
         this.responseBuilder = responseBuilder;
     }
