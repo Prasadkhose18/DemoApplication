@@ -13,6 +13,7 @@ import com.demo.demo.exception.InsufficientBalanceException;
 import com.demo.demo.factory.TransactionFactory;
 import com.demo.demo.model.TransferResult;
 import com.demo.demo.repository.TransactionRepository;
+import com.demo.demo.service.RedisService;
 import com.demo.demo.service.TransactionService;
 import com.demo.demo.service.ValidationService;
 import com.demo.demo.security.services.CurrentUserService;
@@ -31,18 +32,25 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final TransactionEventPublisher transactionEventPublisher;
     private final CurrentUserService currentUserService;
+    private final RedisService redisService;
 
-    public TransactionServiceImpl(ValidationService validationService,
-                                  TransactionFactory transactionFactory,
-                                  TransactionRepository transactionRepository,
-                                  TransactionEventPublisher transactionEventPublisher,
-                                  CurrentUserService currentUserService) {
+
+    public TransactionServiceImpl(
+            ValidationService validationService,
+            TransactionFactory transactionFactory,
+            TransactionRepository transactionRepository,
+            TransactionEventPublisher transactionEventPublisher,
+            CurrentUserService currentUserService,
+            RedisService redisService) {
+
         this.validationService = validationService;
         this.transactionFactory = transactionFactory;
         this.transactionRepository = transactionRepository;
         this.transactionEventPublisher = transactionEventPublisher;
         this.currentUserService = currentUserService;
+        this.redisService = redisService;
     }
+
 
     @Transactional(rollbackFor = Exception.class)
     public Transactions deposit(String accountNumber, BigDecimal amount) {
@@ -69,6 +77,8 @@ public class TransactionServiceImpl implements TransactionService {
                 after
         );
 
+        clearBalanceCache(accountNumber);
+
         publishCompletedEvent(transaction);
 
         log.info("Deposit successful. Reference: {}",
@@ -76,6 +86,8 @@ public class TransactionServiceImpl implements TransactionService {
 
         return transaction;
     }
+
+
 
     @Transactional(rollbackFor = Exception.class)
     public Transactions withdraw(String accountNumber, BigDecimal amount) {
@@ -104,6 +116,8 @@ public class TransactionServiceImpl implements TransactionService {
                 after
         );
 
+        clearBalanceCache(accountNumber);
+
         publishCompletedEvent(transaction);
 
         log.info("Withdrawal successful. Reference: {}",
@@ -112,18 +126,23 @@ public class TransactionServiceImpl implements TransactionService {
         return transaction;
     }
 
+
+
     public BigDecimal checkBalance(String accountNumber) {
 
         log.info("Balance enquiry requested for account {}",
                 accountNumber);
 
-        Accounts account = validationService.validateOwnership(accountNumber);
+        Accounts account =
+                validationService.validateOwnership(accountNumber);
 
         log.info("Balance enquiry successful. Account: {}",
                 accountNumber);
 
         return account.getBalance();
     }
+
+
 
     @Transactional(rollbackFor = Exception.class)
     public TransferResult transfer(TransferRequestDTO request) {
@@ -139,42 +158,65 @@ public class TransactionServiceImpl implements TransactionService {
                 amount
         );
 
+
         validationService.validateAmount(amount);
+
         validationService.validateTransferAccounts(
                 fromAccountNumber,
                 toAccountNumber
         );
 
-        // Acquire locks in a consistent order. This prevents two opposing
-        // transfers from deadlocking while ensuring balances cannot be read
-        // or changed concurrently.
+
         boolean senderComesFirst =
                 fromAccountNumber.compareTo(toAccountNumber) < 0;
 
-        Accounts firstLockedAccount = validationService.getAccountForUpdate(
-                senderComesFirst ? fromAccountNumber : toAccountNumber
-        );
-        Accounts secondLockedAccount = validationService.getAccountForUpdate(
-                senderComesFirst ? toAccountNumber : fromAccountNumber
-        );
+
+        Accounts firstLockedAccount =
+                validationService.getAccountForUpdate(
+                        senderComesFirst ?
+                                fromAccountNumber :
+                                toAccountNumber
+                );
+
+
+        Accounts secondLockedAccount =
+                validationService.getAccountForUpdate(
+                        senderComesFirst ?
+                                toAccountNumber :
+                                fromAccountNumber
+                );
+
 
         Accounts sender =
-                senderComesFirst ? firstLockedAccount : secondLockedAccount;
+                senderComesFirst ?
+                        firstLockedAccount :
+                        secondLockedAccount;
+
+
         validationService.validateOwnership(fromAccountNumber);
 
+
         Accounts receiver =
-                senderComesFirst ? secondLockedAccount : firstLockedAccount;
+                senderComesFirst ?
+                        secondLockedAccount :
+                        firstLockedAccount;
+
 
         validateSufficientBalance(sender, amount);
+
 
         BigDecimal senderBefore = sender.getBalance();
         BigDecimal senderAfter = senderBefore.subtract(amount);
 
+
         BigDecimal receiverBefore = receiver.getBalance();
         BigDecimal receiverAfter = receiverBefore.add(amount);
 
+
         validationService.updateBalance(sender, senderAfter);
         validationService.updateBalance(receiver, receiverAfter);
+
+
 
         Transactions debitTransaction = createTransaction(
                 sender,
@@ -184,6 +226,7 @@ public class TransactionServiceImpl implements TransactionService {
                 senderAfter
         );
 
+
         Transactions creditTransaction = createTransaction(
                 receiver,
                 TransactionType.TRANSFER_CREDIT,
@@ -192,7 +235,13 @@ public class TransactionServiceImpl implements TransactionService {
                 receiverAfter
         );
 
+
+        clearBalanceCache(fromAccountNumber);
+        clearBalanceCache(toAccountNumber);
+
+
         publishCompletedEvent(debitTransaction);
+
 
         log.info(
                 "Transfer completed successfully. From: {}, To: {}",
@@ -200,25 +249,83 @@ public class TransactionServiceImpl implements TransactionService {
                 toAccountNumber
         );
 
+
         return TransferResult.builder()
                 .debitTransaction(debitTransaction)
                 .creditTransaction(creditTransaction)
                 .build();
     }
 
+
+
+
+
     public BalanceResponseDTO getBalance(String accountNumber) {
 
-        log.info("Balance enquiry received for account {}", accountNumber);
+        log.info("Balance enquiry received for account {}",
+                accountNumber);
 
-        Accounts account = validationService.validateOwnership(accountNumber);
 
-        log.info("Balance fetched successfully for account {}", accountNumber);
+        String cacheKey = "BALANCE:" + accountNumber;
 
-        return BalanceResponseDTO.builder()
-                .accountNumber(account.getAccountNumber())
-                .balance(account.getBalance())
-                .build();
+
+        BalanceResponseDTO cachedBalance =
+                (BalanceResponseDTO) redisService.get(cacheKey);
+
+
+
+        if (cachedBalance != null) {
+
+            log.info(
+                    "Balance fetched from Redis for account {}",
+                    accountNumber
+            );
+
+            return cachedBalance;
+        }
+
+
+
+        Accounts account =
+                validationService.validateOwnership(accountNumber);
+
+
+
+        BalanceResponseDTO response =
+                BalanceResponseDTO.builder()
+                        .accountNumber(account.getAccountNumber())
+                        .balance(account.getBalance())
+                        .build();
+
+
+
+        redisService.save(
+                cacheKey,
+                response,
+                30
+        );
+
+
+        log.info(
+                "Balance fetched from database and cached for account {}",
+                accountNumber
+        );
+
+
+        return response;
     }
+
+
+
+
+    private void clearBalanceCache(String accountNumber) {
+
+        redisService.delete(
+                "BALANCE:" + accountNumber
+        );
+    }
+
+
 
     private Transactions createTransaction(
             Accounts account,
@@ -237,8 +344,12 @@ public class TransactionServiceImpl implements TransactionService {
                         .referenceId(null)
                         .build();
 
-        return transactionRepository.save(transactionFactory.create(request));
+        return transactionRepository.save(
+                transactionFactory.create(request)
+        );
     }
+
+
 
 
     private void validateSufficientBalance(
@@ -254,14 +365,20 @@ public class TransactionServiceImpl implements TransactionService {
                     amount
             );
 
+
             throw new InsufficientBalanceException(
                     "Insufficient balance");
         }
     }
 
+
+
+
     private void publishCompletedEvent(Transactions transaction) {
 
-        User currentUser = currentUserService.getCurrentUser();
+        User currentUser =
+                currentUserService.getCurrentUser();
+
 
         transactionEventPublisher.publish(
                 new TransactionCompletedEvent(
@@ -278,4 +395,6 @@ public class TransactionServiceImpl implements TransactionService {
                 )
         );
     }
+
+
 }
