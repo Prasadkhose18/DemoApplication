@@ -29,26 +29,9 @@ public class AuditReportServiceImpl implements AuditReportService {
     private final EmailService emailService;
 
     @Override
-    @Scheduled(cron = "0 0 * * * *")
-    @Transactional
+    @Deprecated
     public void sendAuditReportEmail() {
-        try {
-            log.info("Starting scheduled audit report email send...");
-            DailyAuditReportDTO report = generateDailyAuditReport();
-            
-            String subject = "Daily Audit Report - " + LocalDate.now();
-            String body = formatReportAsEmailBody(report);
-            
-            emailService.sendEmail(
-                    "prasasdkhose512@gmail.com",
-                    subject,
-                    body
-            );
-            
-            log.info("Audit report email sent successfully at {}", LocalDateTime.now());
-        } catch (Exception e) {
-            log.error("Error sending audit report email", e);
-        }
+        log.warn("sendAuditReportEmail is deprecated. Use AuditScheduler.sendHourlyAuditReport() instead.");
     }
 
     @Override

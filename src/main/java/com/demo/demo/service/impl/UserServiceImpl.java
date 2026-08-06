@@ -6,6 +6,8 @@ import com.demo.demo.repository.UserRepository;
 import com.demo.demo.security.CustomUserDetails;
 import com.demo.demo.service.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -30,6 +32,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
+    @CachePut(value = "users", key = "#result.userId")
     public User createUser(User user) {
 
         log.info("Creating new user with email: {}", user.getEmail());
@@ -41,7 +44,6 @@ public class UserServiceImpl implements UserService {
 
         if (user.getMobile() != null &&
                 userRepository.existsByMobile(user.getMobile())) {
-
             log.warn("Registration failed. Mobile number already exists: {}", user.getMobile());
             throw new DuplicateMobileNumberException("Mobile number already exists");
         }
@@ -71,6 +73,7 @@ public class UserServiceImpl implements UserService {
     }
 
 
+    @Cacheable(value = "users", key = "#userId")
     public User getUserById(Long userId) {
 
         log.info("Fetching user with ID: {}", userId);

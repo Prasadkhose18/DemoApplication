@@ -18,41 +18,31 @@ import java.time.LocalDate;
 public class AuditScheduler {
 
     private final AuditReportService auditReportService;
-
     private final AuditEmailBuilder auditEmailBuilder;
-
     private final EmailService emailService;
 
     @Value("${audit.admin.email}")
     private String adminEmail;
 
-    /**
-     * Runs every day at midnight.
-     */
     @Scheduled(cron = "0 0 * * * *")
-    public void sendDailyAuditReport() {
+    public void sendHourlyAuditReport() {
 
-        log.info("Starting daily audit report generation.");
+        log.info("Starting hourly audit report generation.");
 
         LocalDate yesterday = LocalDate.now().minusDays(1);
+        LocalDate today = LocalDate.now();
 
         DailyAuditReportDTO report =
-                auditReportService.generateAuditReport(
-                        yesterday,
-                        yesterday
-                );
+                auditReportService.generateAuditReport(yesterday, today);
 
-        String html =
-                auditEmailBuilder.buildDailyAuditEmail(report);
+        String html = auditEmailBuilder.buildDailyAuditEmail(report);
 
         emailService.sendHtmlEmail(
                 adminEmail,
-                "Daily Banking Audit Report - " + yesterday,
+                "Hourly Banking Audit Report - Last 24 Hours",
                 html
         );
 
-        log.info("Daily audit report sent successfully.");
-
+        log.info("Hourly audit report sent successfully.");
     }
-
 }

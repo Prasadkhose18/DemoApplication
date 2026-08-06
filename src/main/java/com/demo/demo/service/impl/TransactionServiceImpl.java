@@ -13,11 +13,12 @@ import com.demo.demo.exception.InsufficientBalanceException;
 import com.demo.demo.factory.TransactionFactory;
 import com.demo.demo.model.TransferResult;
 import com.demo.demo.repository.TransactionRepository;
-import com.demo.demo.service.RedisService;
 import com.demo.demo.service.TransactionService;
 import com.demo.demo.service.ValidationService;
 import com.demo.demo.security.services.CurrentUserService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +33,6 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final TransactionEventPublisher transactionEventPublisher;
     private final CurrentUserService currentUserService;
-    private final RedisService redisService;
 
 
     public TransactionServiceImpl(
@@ -40,19 +40,18 @@ public class TransactionServiceImpl implements TransactionService {
             TransactionFactory transactionFactory,
             TransactionRepository transactionRepository,
             TransactionEventPublisher transactionEventPublisher,
-            CurrentUserService currentUserService,
-            RedisService redisService) {
+            CurrentUserService currentUserService) {
 
         this.validationService = validationService;
         this.transactionFactory = transactionFactory;
         this.transactionRepository = transactionRepository;
         this.transactionEventPublisher = transactionEventPublisher;
         this.currentUserService = currentUserService;
-        this.redisService = redisService;
     }
 
 
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "balance", key = "#accountNumber")
     public Transactions deposit(String accountNumber, BigDecimal amount) {
 
         log.info("Deposit request received. Account: {}, Amount: {}",
@@ -77,8 +76,6 @@ public class TransactionServiceImpl implements TransactionService {
                 after
         );
 
-        clearBalanceCache(accountNumber);
-
         publishCompletedEvent(transaction);
 
         log.info("Deposit successful. Reference: {}",
@@ -90,6 +87,7 @@ public class TransactionServiceImpl implements TransactionService {
 
 
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "balance", key = "#accountNumber")
     public Transactions withdraw(String accountNumber, BigDecimal amount) {
 
         log.info("Withdrawal request received. Account: {}, Amount: {}",
@@ -115,8 +113,6 @@ public class TransactionServiceImpl implements TransactionService {
                 before,
                 after
         );
-
-        clearBalanceCache(accountNumber);
 
         publishCompletedEvent(transaction);
 
@@ -145,6 +141,7 @@ public class TransactionServiceImpl implements TransactionService {
 
 
     @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "balance", allEntries = true)
     public TransferResult transfer(TransferRequestDTO request) {
 
         String fromAccountNumber = request.getFromAccountNumber();
@@ -235,11 +232,6 @@ public class TransactionServiceImpl implements TransactionService {
                 receiverAfter
         );
 
-
-        clearBalanceCache(fromAccountNumber);
-        clearBalanceCache(toAccountNumber);
-
-
         publishCompletedEvent(debitTransaction);
 
 
@@ -260,70 +252,20 @@ public class TransactionServiceImpl implements TransactionService {
 
 
 
+    @Cacheable(value = "balance", key = "#accountNumber")
     public BalanceResponseDTO getBalance(String accountNumber) {
 
-        log.info("Balance enquiry received for account {}",
-                accountNumber);
-
-
-        String cacheKey = "BALANCE:" + accountNumber;
-
-
-        BalanceResponseDTO cachedBalance =
-                (BalanceResponseDTO) redisService.get(cacheKey);
-
-
-
-        if (cachedBalance != null) {
-
-            log.info(
-                    "Balance fetched from Redis for account {}",
-                    accountNumber
-            );
-
-            return cachedBalance;
-        }
-
-
+        log.info("Balance enquiry received for account {}", accountNumber);
 
         Accounts account =
                 validationService.validateOwnership(accountNumber);
 
-
-
-        BalanceResponseDTO response =
-                BalanceResponseDTO.builder()
-                        .accountNumber(account.getAccountNumber())
-                        .balance(account.getBalance())
-                        .build();
-
-
-
-        redisService.save(
-                cacheKey,
-                response,
-                30
-        );
-
-
-        log.info(
-                "Balance fetched from database and cached for account {}",
-                accountNumber
-        );
-
-
-        return response;
+        return BalanceResponseDTO.builder()
+                .accountNumber(account.getAccountNumber())
+                .balance(account.getBalance())
+                .build();
     }
 
-
-
-
-    private void clearBalanceCache(String accountNumber) {
-
-        redisService.delete(
-                "BALANCE:" + accountNumber
-        );
-    }
 
 
 
