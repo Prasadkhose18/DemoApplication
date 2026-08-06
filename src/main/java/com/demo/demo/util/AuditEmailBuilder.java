@@ -74,7 +74,7 @@ public class AuditEmailBuilder {
 
                 <div class="container">
 
-                <h2>Daily Banking Audit Report</h2>
+                <h2>Last 24 hours Audit Report</h2>
                 """);
 
         html.append("<p><strong>From:</strong> ")
