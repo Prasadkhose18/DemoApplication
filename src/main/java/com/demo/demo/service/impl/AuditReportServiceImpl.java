@@ -29,7 +29,6 @@ public class AuditReportServiceImpl implements AuditReportService {
     private final EmailService emailService;
 
     @Override
-    @Deprecated
     public void sendAuditReportEmail() {
         log.warn("sendAuditReportEmail is deprecated. Use AuditScheduler.sendHourlyAuditReport() instead.");
     }

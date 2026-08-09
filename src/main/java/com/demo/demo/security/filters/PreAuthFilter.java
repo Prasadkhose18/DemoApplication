@@ -54,9 +54,43 @@ public class PreAuthFilter extends OncePerRequestFilter {
                 || path.startsWith("/api-docs")) {
 
             filterChain.doFilter(request, response);
-
+            return;
         }
 
-        // Existing Pre-Auth logic...
+        // Extract Pre-Auth headers
+        String userEmail = request.getHeader(SecurityConstants.PRE_AUTH_HEADER);
+        String preAuthKey = request.getHeader(SecurityConstants.PRE_AUTH_KEY_HEADER);
+
+        log.debug("Pre-Auth attempt for email: {}", userEmail);
+
+        if (userEmail == null || userEmail.isBlank() || preAuthKey == null || preAuthKey.isBlank()) {
+            log.warn("Missing Pre-Auth headers");
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.getWriter().write("Missing Pre-Auth headers");
+            return;
+        }
+
+        // Validate pre-auth key
+        if (!preAuthKey.equals(securityProperties.getPreAuthKey())) {
+            log.warn("Invalid Pre-Auth key for email: {}", userEmail);
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.getWriter().write("Invalid Pre-Auth key");
+            return;
+        }
+
+        // Load user details
+        UserDetails userDetails = userService.loadUserByUsername(userEmail);
+        log.info("User authenticated via Pre-Auth: {}", userEmail);
+
+        // Create authentication token
+        UsernamePasswordAuthenticationToken authToken =
+                new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+
+        // Set authentication in security context
+        SecurityContextHolder.getContext().setAuthentication(authToken);
+
+        // Continue filter chain
+        filterChain.doFilter(request, response);
     }
 }
