@@ -9,7 +9,6 @@ import com.demo.demo.service.AuditReportService;
 import com.demo.demo.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -140,37 +139,6 @@ public class AuditReportServiceImpl implements AuditReportService {
                 .filter(filter)
                 .map(Transactions::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    private String formatReportAsEmailBody(DailyAuditReportDTO report) {
-        return String.format("""
-                Daily Audit Report
-                ==================
-                Report Date: %s to %s
-                Generated At: %s
-                
-                Transaction Summary:
-                - Total Transactions: %d
-                - Total Deposits: %d
-                - Total Withdrawals: %d
-                - Total Transfers: %d
-                
-                Amount Summary:
-                - Total Deposit Amount: %s
-                - Total Withdrawal Amount: %s
-                - Total Transfer Amount: %s
-                """,
-                report.getFromDate(),
-                report.getToDate(),
-                report.getGeneratedAt(),
-                report.getTotalTransactions(),
-                report.getTotalDeposits(),
-                report.getTotalWithdrawals(),
-                report.getTotalTransfers(),
-                report.getTotalDepositAmount(),
-                report.getTotalWithdrawalAmount(),
-                report.getTotalTransferAmount()
-        );
     }
 
 }
