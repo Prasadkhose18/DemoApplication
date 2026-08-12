@@ -2,6 +2,7 @@ package com.demo.demo.exception;
 
 import com.demo.demo.dto.response.ApiResponse;
 import com.demo.demo.dto.response.ErrorResponseDTO;
+import com.demo.demo.util.APIResponseBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -20,70 +21,72 @@ import java.time.LocalDateTime;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private final APIResponseBuilder responseBuilder;
+
+    public GlobalExceptionHandler(APIResponseBuilder responseBuilder) {
+        this.responseBuilder = responseBuilder;
+    }
+
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO> handleUserNotFound(
+    public ResponseEntity<ApiResponse<Void>> handleUserNotFound(
             UserNotFoundException ex,
             HttpServletRequest request) {
 
         log.warn("User not found: {}", ex.getMessage());
 
-        return buildErrorResponse(
-                HttpStatus.NOT_FOUND,
+        return responseBuilder.notFound(
                 ex.getMessage(),
                 request.getRequestURI()
         );
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO> handleResourceNotFound(
+    public ResponseEntity<ApiResponse<Void>> handleResourceNotFound(
             ResourceNotFoundException ex,
             HttpServletRequest request) {
 
         log.warn("Resource not found: {}", ex.getMessage());
 
-        return buildErrorResponse(
-                HttpStatus.NOT_FOUND,
+        return responseBuilder.notFound(
                 ex.getMessage(),
                 request.getRequestURI()
         );
     }
 
     @ExceptionHandler(DuplicateEmailException.class)
-    public ResponseEntity<ErrorResponseDTO> handleDuplicateEmail(
+    public ResponseEntity<ApiResponse<Void>> handleDuplicateEmail(
             DuplicateEmailException ex,
             HttpServletRequest request) {
 
         log.warn("Duplicate email: {}", ex.getMessage());
 
-        return buildErrorResponse(
-                HttpStatus.CONFLICT,
+        return responseBuilder.conflict(
                 ex.getMessage(),
                 request.getRequestURI()
         );
     }
 
     @ExceptionHandler(DuplicateMobileNumberException.class)
-    public ResponseEntity<ErrorResponseDTO> handleDuplicateMobile(
+    public ResponseEntity<ApiResponse<Void>> handleDuplicateMobile(
             DuplicateMobileNumberException ex,
             HttpServletRequest request) {
 
         log.warn("Duplicate mobile number: {}", ex.getMessage());
 
-        return buildErrorResponse(
-                HttpStatus.CONFLICT,
+        return responseBuilder.conflict(
                 ex.getMessage(),
                 request.getRequestURI()
         );
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)
-    public ResponseEntity<ErrorResponseDTO> handleInvalidCredentials(
+    public ResponseEntity<ApiResponse<Void>> handleInvalidCredentials(
             InvalidCredentialsException ex,
             HttpServletRequest request) {
 
         log.warn("Authentication failed: {}", ex.getMessage());
 
-        return buildErrorResponse(
+        return responseBuilder.error(
                 HttpStatus.UNAUTHORIZED,
                 ex.getMessage(),
                 request.getRequestURI()
@@ -91,41 +94,39 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InvalidTransactionException.class)
-    public ResponseEntity<ErrorResponseDTO> handleInvalidTransaction(
+    public ResponseEntity<ApiResponse<Void>> handleInvalidTransaction(
             InvalidTransactionException ex,
             HttpServletRequest request) {
 
         log.warn("Invalid transaction: {}", ex.getMessage());
 
-        return buildErrorResponse(
-                HttpStatus.BAD_REQUEST,
+        return responseBuilder.badRequest(
                 ex.getMessage(),
                 request.getRequestURI()
         );
     }
 
     @ExceptionHandler(InvalidStatementRequestException.class)
-    public ResponseEntity<ErrorResponseDTO> handleInvalidStatementRequest(
+    public ResponseEntity<ApiResponse<Void>> handleInvalidStatementRequest(
             InvalidStatementRequestException ex,
             HttpServletRequest request) {
 
         log.warn("Invalid statement request: {}", ex.getMessage());
 
-        return buildErrorResponse(
-                HttpStatus.BAD_REQUEST,
+        return responseBuilder.badRequest(
                 ex.getMessage(),
                 request.getRequestURI()
         );
     }
 
     @ExceptionHandler(StatementEmailDeliveryException.class)
-    public ResponseEntity<ErrorResponseDTO> handleStatementEmailDelivery(
+    public ResponseEntity<ApiResponse<Void>> handleStatementEmailDelivery(
             StatementEmailDeliveryException ex,
             HttpServletRequest request) {
 
         log.error("Bank statement email delivery failed", ex);
 
-        return buildErrorResponse(
+        return responseBuilder.error(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Unable to send bank statement email",
                 request.getRequestURI()
@@ -133,21 +134,20 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InsufficientBalanceException.class)
-    public ResponseEntity<ErrorResponseDTO> handleInsufficientBalance(
+    public ResponseEntity<ApiResponse<Void>> handleInsufficientBalance(
             InsufficientBalanceException ex,
             HttpServletRequest request) {
 
         log.warn("Insufficient balance: {}", ex.getMessage());
 
-        return buildErrorResponse(
-                HttpStatus.BAD_REQUEST,
+        return responseBuilder.badRequest(
                 ex.getMessage(),
                 request.getRequestURI()
         );
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponseDTO> handleValidationException(
+    public ResponseEntity<ApiResponse<Void>> handleValidationException(
             MethodArgumentNotValidException ex,
             HttpServletRequest request) {
 
@@ -159,97 +159,101 @@ public class GlobalExceptionHandler {
 
         log.warn("Validation failed: {}", message);
 
-        return buildErrorResponse(
-                HttpStatus.BAD_REQUEST,
+        return responseBuilder.badRequest(
                 message,
                 request.getRequestURI()
         );
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponseDTO> handleException(
+    public ResponseEntity<ApiResponse<Void>> handleException(
             Exception ex,
             HttpServletRequest request) {
 
         log.error("Unexpected exception occurred", ex);
 
-        return buildErrorResponse(
+        return responseBuilder.error(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Unexpected server error",
                 request.getRequestURI()
         );
     }
 
-    private ResponseEntity<ErrorResponseDTO> buildErrorResponse(
-            HttpStatus status,
-            String message,
-            String path) {
-
-        ErrorResponseDTO error = new ErrorResponseDTO();
-        error.setTimestamp(LocalDateTime.now());
-        error.setStatus(status.value());
-        error.setError(status.getReasonPhrase());
-        error.setMessage(message);
-        error.setPath(path);
-
-        return ResponseEntity.status(status).body(error);
-    }
-
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponseDTO> handleHttpMessageNotReadable(
+    public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadable(
             HttpMessageNotReadableException ex,
             HttpServletRequest request) {
 
         log.warn("Invalid request body: {}", ex.getMessage());
 
-        return buildErrorResponse(
-                HttpStatus.BAD_REQUEST,
+        return responseBuilder.badRequest(
                 "Request body is missing or invalid",
                 request.getRequestURI()
         );
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponseDTO> handleArgumentTypeMismatch(
+    public ResponseEntity<ApiResponse<Void>> handleArgumentTypeMismatch(
             MethodArgumentTypeMismatchException ex,
             HttpServletRequest request) {
 
         log.warn("Invalid request parameter {}: {}", ex.getName(), ex.getValue());
 
-        return buildErrorResponse(
-                HttpStatus.BAD_REQUEST,
+        return responseBuilder.badRequest(
                 "Invalid value for " + ex.getName(),
                 request.getRequestURI()
         );
     }
 
     @ExceptionHandler(UnauthorizedAccessException.class)
-    public ResponseEntity<ErrorResponseDTO> handleUnauthorizedAccess(
+    public ResponseEntity<ApiResponse<Void>> handleUnauthorizedAccess(
             UnauthorizedAccessException ex,
             HttpServletRequest request) {
 
         log.warn("Unauthorized access: {}", ex.getMessage());
 
-        return buildErrorResponse(
-                HttpStatus.FORBIDDEN,
+        return responseBuilder.forbidden(
                 ex.getMessage(),
                 request.getRequestURI()
         );
     }
 
     @ExceptionHandler(org.springframework.security.authorization.AuthorizationDeniedException.class)
-    public ResponseEntity<ApiResponse<Object>> handleAuthorizationDenied(
+    public ResponseEntity<ApiResponse<Void>> handleAuthorizationDenied(
             AuthorizationDeniedException ex,
             HttpServletRequest request) {
 
-        ApiResponse<Object> response = ApiResponse.error(
-                HttpStatus.FORBIDDEN,
-                "You are not authorized to access this resource.",
+        log.warn("Authorization denied: {}", ex.getMessage());
+
+        return responseBuilder.forbidden(
+                "You are not authorized to access this resource",
                 request.getRequestURI()
         );
+    }
 
-        return ResponseEntity
-                .status(HttpStatus.FORBIDDEN)
-                .body(response);
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleValidationException(
+            ValidationException ex,
+            HttpServletRequest request) {
+
+        log.warn("Validation error: {}", ex.getMessage());
+
+        return responseBuilder.badRequest(
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+    }
+
+    @ExceptionHandler(InvalidInputException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidInput(
+            InvalidInputException ex,
+            HttpServletRequest request) {
+
+        log.warn("Invalid input: {}", ex.getMessage());
+
+        return responseBuilder.badRequest(
+                ex.getMessage(),
+                request.getRequestURI()
+        );
     }
 }

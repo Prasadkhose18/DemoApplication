@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Table(name = "Accounts")
 @Entity
@@ -29,7 +30,10 @@ public class Accounts {
     private String status;
 
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "userid",nullable = false)
     private User user;
+
+    @OneToMany(mappedBy = "account", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Transactions> transactions;
 }

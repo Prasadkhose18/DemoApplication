@@ -8,4 +8,6 @@ public interface AccountsService {
     Accounts createAccount(String accountType);
 
     List<Accounts> getMyAccounts();
+
+    void deleteAccount(String accountNumber);
 }

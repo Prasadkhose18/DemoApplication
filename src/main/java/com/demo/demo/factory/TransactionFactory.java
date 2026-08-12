@@ -23,20 +23,20 @@ public class TransactionFactory {
 
         log.debug(
                 "Creating {} transaction for account {}",
-                request.getTransactionType(),
-                request.getAccount().getAccountNumber()
+                request.transactionType(),
+                request.account().getAccountNumber()
         );
 
         Transactions transaction = new Transactions();
 
-        transaction.setAccount(request.getAccount());
-        transaction.setTransactionType(request.getTransactionType());
-        transaction.setAmount(request.getAmount());
-        transaction.setBalanceBefore(request.getBalanceBefore());
-        transaction.setBalanceAfter(request.getBalanceAfter());
-        String referenceId = resolveReferenceId(request.getReferenceId());
+        transaction.setAccount(request.account());
+        transaction.setTransactionType(request.transactionType());
+        transaction.setAmount(request.amount());
+        transaction.setBalanceBefore(request.balanceBefore());
+        transaction.setBalanceAfter(request.balanceAfter());
+        String referenceId = resolveReferenceId(request.referenceId());
         transaction.setReferenceId(referenceId);
-        transaction.setLegacyReferenceId(referenceId);
+
         transaction.setTransactionTime(LocalDateTime.now());
 
         log.info(

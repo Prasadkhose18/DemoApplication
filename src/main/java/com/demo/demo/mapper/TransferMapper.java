@@ -13,30 +13,30 @@ public class TransferMapper {
         return TransferResponseDTO.builder()
 
                 .referenceId(
-                        result.getDebitTransaction()
+                        result.debitTransaction()
                                 .getReferenceId())
 
                 .fromAccountNumber(
-                        result.getDebitTransaction()
+                        result.debitTransaction()
                                 .getAccount()
                                 .getAccountNumber())
 
                 .toAccountNumber(
-                        result.getCreditTransaction()
+                        result.creditTransaction()
                                 .getAccount()
                                 .getAccountNumber())
 
                 .amount(
-                        result.getDebitTransaction()
+                        result.debitTransaction()
                                 .getAmount())
 
                 .senderBalance(
-                        result.getDebitTransaction()
+                        result.debitTransaction()
                                 .getBalanceAfter())
 
 
                 .transactionTime(
-                        result.getDebitTransaction()
+                        result.debitTransaction()
                                 .getTransactionTime())
 
                 .build();

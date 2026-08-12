@@ -2,6 +2,7 @@ package com.demo.demo.controller;
 
 import com.demo.demo.dto.response.ApiResponse;
 import com.demo.demo.dto.request.UserRequestDTO;
+import com.demo.demo.dto.request.UpdateUserRequestDTO;
 import com.demo.demo.dto.response.UserResponseDTO;
 import com.demo.demo.entity.User;
 import com.demo.demo.mapper.UserMapper;
@@ -64,6 +65,42 @@ public class UserController {
         return responseBuilder.created(
                 "User created successfully",
                 userMapper.toResponseDTO(savedUser),
+                request.getRequestURI()
+        );
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserResponseDTO>> updateUser(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateUserRequestDTO updateDTO,
+            HttpServletRequest request) {
+
+        log.info("PUT /users/{} request received", id);
+
+        User updatedUser = userService.updateUser(id, updateDTO);
+
+        log.info("User updated successfully with ID: {}", id);
+
+        return responseBuilder.ok(
+                "User updated successfully",
+                userMapper.toResponseDTO(updatedUser),
+                request.getRequestURI()
+        );
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteUser(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+
+        log.info("DELETE /users/{} request received", id);
+
+        userService.deleteUser(id);
+
+        log.info("User deleted successfully with ID: {}", id);
+
+        return responseBuilder.noContent(
+                "User deleted successfully",
                 request.getRequestURI()
         );
     }

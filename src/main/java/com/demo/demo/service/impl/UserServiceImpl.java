@@ -1,11 +1,13 @@
 package com.demo.demo.service.impl;
 
+import com.demo.demo.dto.request.UpdateUserRequestDTO;
 import com.demo.demo.entity.User;
 import com.demo.demo.exception.*;
 import com.demo.demo.repository.UserRepository;
 import com.demo.demo.security.CustomUserDetails;
 import com.demo.demo.service.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -90,6 +92,72 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
+    @Transactional
+    @CachePut(value = "users", key = "#id")
+    public User updateUser(Long id, UpdateUserRequestDTO updateDTO) {
+
+        log.info("Updating user with ID: {}", id);
+
+        User user = getUserById(id);
+
+        if (updateDTO.getName() != null && !updateDTO.getName().isBlank()) {
+            user.setName(updateDTO.getName().trim());
+            log.debug("Updated name for user ID: {}", id);
+        }
+
+        if (updateDTO.getEmail() != null && !updateDTO.getEmail().isBlank()) {
+            String newEmail = updateDTO.getEmail().trim();
+            if (!newEmail.equals(user.getEmail()) && userRepository.existsByEmail(newEmail)) {
+                log.warn("Email already exists: {}", newEmail);
+                throw new DuplicateEmailException("Email is already in use");
+            }
+            user.setEmail(newEmail);
+            log.debug("Updated email for user ID: {}", id);
+        }
+
+        if (updateDTO.getMobile() != null && !updateDTO.getMobile().isBlank()) {
+            String newMobile = updateDTO.getMobile().trim();
+            if (!newMobile.equals(user.getMobile()) && userRepository.existsByMobile(newMobile)) {
+                log.warn("Mobile number already exists: {}", newMobile);
+                throw new DuplicateMobileNumberException("Mobile number is already in use");
+            }
+            user.setMobile(newMobile);
+            log.debug("Updated mobile for user ID: {}", id);
+        }
+
+        if (updateDTO.getPassword() != null && !updateDTO.getPassword().isBlank()) {
+            if (updateDTO.getPassword().length() < 8) {
+                log.warn("Password update failed for user ID: {} - Password too short", id);
+                throw new InvalidInputException("Password must be at least 8 characters long");
+            }
+            user.setPasswordHash(passwordEncoder.encode(updateDTO.getPassword()));
+            log.debug("Updated password for user ID: {}", id);
+        }
+
+        User updatedUser = userRepository.save(user);
+
+        log.info("User updated successfully. User ID: {}", id);
+
+        return updatedUser;
+    }
+
+    @Transactional
+    @CacheEvict(value = "users", key = "#id")
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteUser(Long id) {
+
+        log.info("Attempting to delete user with ID: {}", id);
+
+        if (!userRepository.existsById(id)) {
+            log.warn("User not found for deletion. User ID: {}", id);
+            throw new ResourceNotFoundException("User not found with ID: " + id);
+        }
+
+        userRepository.deleteById(id);
+
+        log.info("User deleted successfully. User ID: {}", id);
+    }
+
     @Override
     @PreAuthorize("hasRole('ADMIN')")
     public List<User> getAllUsers() {
@@ -128,3 +196,4 @@ public class UserServiceImpl implements UserService {
 
 
 }
+

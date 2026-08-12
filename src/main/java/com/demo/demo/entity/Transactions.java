@@ -20,7 +20,7 @@ public class Transactions {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long transactionId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "account_id", nullable = false)
     private Accounts account;
 
@@ -42,8 +42,9 @@ public class Transactions {
 
     // Compatibility with the pre-existing misspelled, non-null database
     // column. This can be removed after that column is dropped in a migration.
-    @Column(name = "refereance_id", nullable = false, unique = true)
-    private String legacyReferenceId;
+//    @Column(name = "refereance_id", nullable = false, unique = true)
+//    private String legacyReferenceId;
+//
 
     @Column(nullable = false)
     private LocalDateTime transactionTime;

@@ -69,4 +69,21 @@ public class AccountController {
                 request.getRequestURI()
         );
     }
+
+    @DeleteMapping("/{accountNumber}")
+    public ResponseEntity<ApiResponse<Void>> deleteAccount(
+            @PathVariable String accountNumber,
+            HttpServletRequest request) {
+
+        log.info("DELETE /accounts/{} request received", accountNumber);
+
+        accountsService.deleteAccount(accountNumber);
+
+        log.info("Account deleted successfully. Account Number: {}", accountNumber);
+
+        return responseBuilder.noContent(
+                "Account deleted successfully",
+                request.getRequestURI()
+        );
+    }
 }
