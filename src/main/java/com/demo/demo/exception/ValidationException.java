@@ -1,6 +1,6 @@
 package com.demo.demo.exception;
 
-public class ValidationException extends RuntimeException{
+public final class ValidationException extends ApplicationException {
     public ValidationException(String message){
         super(message);
     }

@@ -1,6 +1,6 @@
 package com.demo.demo.exception;
 
-public class StatementEmailDeliveryException extends RuntimeException {
+public final class StatementEmailDeliveryException extends ApplicationException {
 
     public StatementEmailDeliveryException(String message, Throwable cause) {
         super(message, cause);

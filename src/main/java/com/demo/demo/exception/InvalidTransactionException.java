@@ -1,6 +1,6 @@
 package com.demo.demo.exception;
 
-public class InvalidTransactionException extends RuntimeException{
+public final class InvalidTransactionException extends ApplicationException {
     public InvalidTransactionException(String message){
         super(message);
 

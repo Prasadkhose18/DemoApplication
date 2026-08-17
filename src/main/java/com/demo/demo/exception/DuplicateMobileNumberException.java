@@ -1,6 +1,6 @@
 package com.demo.demo.exception;
 
-public class DuplicateMobileNumberException extends RuntimeException{
+public final class DuplicateMobileNumberException extends ApplicationException {
     public DuplicateMobileNumberException(String message){
         super(message);
     }

@@ -1,6 +1,6 @@
 package com.demo.demo.exception;
 
-public class DuplicateEmailException extends RuntimeException{
+public final class DuplicateEmailException extends ApplicationException {
     public DuplicateEmailException(String message){
         super(message);
     }

@@ -36,7 +36,6 @@ public class TransactionFactory {
         transaction.setBalanceAfter(request.balanceAfter());
         String referenceId = resolveReferenceId(request.referenceId());
         transaction.setReferenceId(referenceId);
-
         transaction.setTransactionTime(LocalDateTime.now());
 
         log.info(

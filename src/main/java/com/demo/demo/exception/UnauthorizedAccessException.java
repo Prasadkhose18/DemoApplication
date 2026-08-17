@@ -1,6 +1,6 @@
 package com.demo.demo.exception;
 
-public class UnauthorizedAccessException extends RuntimeException{
+public final class UnauthorizedAccessException extends ApplicationException {
     public UnauthorizedAccessException(String message){
         super(message);
     }

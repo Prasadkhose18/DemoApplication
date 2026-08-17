@@ -1,6 +1,6 @@
 package com.demo.demo.exception;
 
-public class InsufficientBalanceException extends RuntimeException{
+public final class InsufficientBalanceException extends ApplicationException {
     public InsufficientBalanceException(String message){
         super(message);
     }
