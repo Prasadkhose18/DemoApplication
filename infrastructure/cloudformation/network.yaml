@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: >
+  Network foundation for the Demo Banking application.
+  Creates a VPC with one public subnet for the initial deployment.
+
+Resources:
+
+  BankingVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: demo-banking-vpc
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: demo-banking-igw
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref BankingVPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref BankingVPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs ''
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: demo-banking-public-subnet
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref BankingVPC
+      Tags:
+        - Key: Name
+          Value: demo-banking-public-rt
+
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: VPCGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet
+
+Outputs:
+
+  VPCId:
+    Description: ID of the Demo Banking VPC
+    Value: !Ref BankingVPC
+    Export:
+      Name: DemoBanking-VPC
+
+  PublicSubnetId:
+    Description: ID of the public subnet
+    Value: !Ref PublicSubnet
+    Export:
+      Name: DemoBanking-PublicSubnet
+
+  InternetGatewayId:
+    Description: ID of the Internet Gateway
+    Value: !Ref InternetGateway

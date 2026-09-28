@@ -1,0 +1,29 @@
+services:
+
+  banking-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: banking-api
+    restart: unless-stopped
+
+    ports:
+      - "8080:8080"
+
+    env_file:
+      - .env
+
+    environment:
+      DB_HOST: mysql-demo
+      DB_PORT: 3306
+      REDIS_HOST: redis-container
+      REDIS_PORT: 6379
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+
+    networks:
+      - banking-network
+
+networks:
+  banking-network:
+    name: demo_banking-network
+    external: true

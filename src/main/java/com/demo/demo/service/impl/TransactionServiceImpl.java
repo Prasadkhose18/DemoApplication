@@ -53,7 +53,6 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional(rollbackFor = Exception.class)
     @CacheEvict(value = "balance", key = "#accountNumber")
     public Transactions deposit(String accountNumber, BigDecimal amount) {
-
         log.info("Deposit request received. Account: {}, Amount: {}",
                 accountNumber,
                 amount);

@@ -24,10 +24,11 @@ Thumbs.db
 # Environment
 .env
 
-# Spring Boot configuration containing secrets
-src/main/resources/application.properties
-src/main/resources/application.yml
+
 
 # Temporary files
 *.tmp
 *.swp
+
+.env
+*.env

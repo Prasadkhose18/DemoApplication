@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: >
+  EC2 application server for the Demo Banking application.
+
+Parameters:
+
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Existing EC2 Key Pair used for SSH access.
+
+Resources:
+
+  BankingEC2:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-090d68841c2a28756
+      InstanceType: t3.micro
+
+      KeyName: !Ref KeyName
+
+      SubnetId:
+        Fn::ImportValue: DemoBanking-PublicSubnet
+
+      SecurityGroupIds:
+        - Fn::ImportValue: DemoBanking-EC2SecurityGroup
+
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: 20
+            VolumeType: gp3
+            DeleteOnTermination: true
+            Encrypted: true
+
+      Tags:
+        - Key: Name
+          Value: demo-banking-api-server
+
+Outputs:
+
+  InstanceId:
+    Description: Demo Banking EC2 instance ID
+    Value: !Ref BankingEC2
+
+  PublicIP:
+    Description: Public IP address of the EC2 instance
+    Value: !GetAtt BankingEC2.PublicIp
+
+  PublicDNS:
+    Description: Public DNS name of the EC2 instance
+    Value: !GetAtt BankingEC2.PublicDnsName

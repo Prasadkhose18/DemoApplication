@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: >
+  Security groups for the Demo Banking application.
+  Controls access to the EC2 application server and RDS database.
+
+Parameters:
+
+  SSHAllowedIP:
+    Type: String
+    Description: >
+      Public IPv4 address allowed to SSH into the EC2 instance.
+      Use CIDR notation, for example 203.0.113.10/32.
+
+Resources:
+
+  BankingEC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Demo Banking EC2 instance
+      VpcId:
+        Fn::ImportValue: DemoBanking-VPC
+      Tags:
+        - Key: Name
+          Value: demo-banking-ec2-sg
+
+      SecurityGroupIngress:
+
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref SSHAllowedIP
+          Description: SSH access from administrator IP
+
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          CidrIp: 0.0.0.0/0
+          Description: Banking API access
+
+  BankingRDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Demo Banking RDS MySQL
+      VpcId:
+        Fn::ImportValue: DemoBanking-VPC
+      Tags:
+        - Key: Name
+          Value: demo-banking-rds-sg
+
+  BankingRDSIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref BankingRDSSecurityGroup
+      IpProtocol: tcp
+      FromPort: 3306
+      ToPort: 3306
+      SourceSecurityGroupId: !Ref BankingEC2SecurityGroup
+      Description: MySQL access from Demo Banking EC2
+
+Outputs:
+
+  EC2SecurityGroupId:
+    Description: Security group ID for the Demo Banking EC2 instance
+    Value: !Ref BankingEC2SecurityGroup
+    Export:
+      Name: DemoBanking-EC2SecurityGroup
+
+  RDSSecurityGroupId:
+    Description: Security group ID for the Demo Banking RDS instance
+    Value: !Ref BankingRDSSecurityGroup
+    Export:
+      Name: DemoBanking-RDSSecurityGroup

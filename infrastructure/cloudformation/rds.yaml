@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: >
+  Amazon RDS MySQL database for the Demo Banking application.
+
+Resources:
+
+  BankingRDS:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Snapshot
+    UpdateReplacePolicy: Snapshot
+    Properties:
+      DBInstanceIdentifier: demo-banking-db
+
+      Engine: mysql
+      EngineVersion: '8.0'
+
+      DBInstanceClass: db.t3.micro
+
+      AllocatedStorage: 20
+      StorageType: gp2
+      StorageEncrypted: true
+
+      DBName: demo_db
+      MasterUsername: admin
+
+      ManageMasterUserPassword: true
+
+      DBSubnetGroupName:
+        Fn::ImportValue: DemoBanking-DBSubnetGroup
+
+      VPCSecurityGroups:
+        - Fn::ImportValue: DemoBanking-RDSSecurityGroup
+
+      PubliclyAccessible: false
+
+      BackupRetentionPeriod: 1
+
+      MultiAZ: false
+
+      AutoMinorVersionUpgrade: true
+
+      DeletionProtection: false
+
+      Tags:
+        - Key: Name
+          Value: demo-banking-rds
+
+Outputs:
+
+  RDSInstanceIdentifier:
+    Description: RDS instance identifier
+    Value: !Ref BankingRDS
+
+  RDSEndpoint:
+    Description: RDS endpoint
+    Value: !GetAtt BankingRDS.Endpoint.Address
+
+  RDSPort:
+    Description: RDS MySQL port
+    Value: !GetAtt BankingRDS.Endpoint.Port

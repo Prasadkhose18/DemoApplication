@@ -1,0 +1,80 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: >
+  Private networking for the Demo Banking RDS MySQL database.
+
+Resources:
+
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Fn::ImportValue: DemoBanking-VPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs ''
+      Tags:
+        - Key: Name
+          Value: demo-banking-private-subnet-a
+
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Fn::ImportValue: DemoBanking-VPC
+      CidrBlock: 10.0.3.0/24
+      AvailabilityZone: !Select
+        - 1
+        - !GetAZs ''
+      Tags:
+        - Key: Name
+          Value: demo-banking-private-subnet-b
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Fn::ImportValue: DemoBanking-VPC
+      Tags:
+        - Key: Name
+          Value: demo-banking-private-rt
+
+  PrivateSubnetARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnetA
+
+  PrivateSubnetBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnetB
+
+  BankingDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Private subnet group for Demo Banking RDS
+      SubnetIds:
+        - !Ref PrivateSubnetA
+        - !Ref PrivateSubnetB
+      Tags:
+        - Key: Name
+          Value: demo-banking-db-subnet-group
+
+Outputs:
+
+  PrivateSubnetAId:
+    Description: Private subnet A
+    Value: !Ref PrivateSubnetA
+
+  PrivateSubnetBId:
+    Description: Private subnet B
+    Value: !Ref PrivateSubnetB
+
+  DBSubnetGroupName:
+    Description: RDS DB subnet group
+    Value: !Ref BankingDBSubnetGroup
+    Export:
+      Name: DemoBanking-DBSubnetGroup
