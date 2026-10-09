@@ -20,6 +20,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: demo_db
+          MYSQL_USER: demo_test
+          MYSQL_PASSWORD: demo_test_password
+          MYSQL_ROOT_PASSWORD: demo_root_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -udemo_test -pdemo_test_password"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -32,6 +48,28 @@ jobs:
           cache: maven
 
       - name: Run Maven tests
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: '3306'
+          DB_NAME: demo_db
+          DB_USERNAME: demo_test
+          DB_PASSWORD: demo_test_password
+          JWT_SECRET: ci-only-jwt-secret-key-not-for-production-123456789
+          JWT_ACCESS_EXPIRATION: '900000'
+          JWT_REFRESH_EXPIRATION: '604800000'
+          JWT_ISSUER: demo-banking-api-test
+          JWT_AUDIENCE: demo-banking-client-test
+          AUTH_MODE: jwt
+          PRE_AUTH_KEY: ci-only-pre-auth-key
+          MAIL_USERNAME: test@example.com
+          MAIL_PASSWORD: ci-only-mail-password
+          AUDIT_ADMIN_EMAIL: test-admin@example.com
+          AUDIT_MAIL_FROM: test@example.com
+          KAFKA_BOOTSTRAP_SERVERS: localhost:9092
+          SPRING_KAFKA_LISTENER_AUTO_STARTUP: 'false'
+          REDIS_HOST: localhost
+          REDIS_PORT: '6379'
+          AUDIT_CRON: '0 0 0 1 1 *'
         run: |
           chmod +x mvnw
           ./mvnw -B test
